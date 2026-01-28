@@ -5,6 +5,7 @@ namespace App\Http\Controllers\backend\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Models\ClassModel;
 
 class DashboardController extends Controller
 {
@@ -12,11 +13,15 @@ class DashboardController extends Controller
     {
         $data = [];
 
+        // =============================
         // Basic page info
+        // =============================
+        $data['page_title']  = 'SMS Admin (SIS)';
         $data['active_menu'] = 'dashboard';
-        $data['page_title']  = 'Dashboard';
 
-        // ✅ Defaults (so blade never breaks)
+        // =============================
+        // Defaults (blade safety)
+        // =============================
         $data['total_students']        = 0;
         $data['total_auditors']        = 0;
         $data['total_exams']           = 0;
@@ -25,11 +30,20 @@ class DashboardController extends Controller
         $data['total_correct_answers'] = 0;
         $data['total_duplicate_rolls'] = 0;
 
+        // ✅ Class stats (NEW)
+        $data['total_classes']   = 0;
+        $data['active_classes']  = 0;
+        $data['inactive_classes'] = 0;
+        $data['recent_classes']  = collect();
+
         $data['latest_students'] = collect();
         $data['latest_results']  = collect();
 
         try {
-            // 1) Detect tables
+
+            // =============================
+            // Detect tables
+            // =============================
             $studentsTable = $this->firstExistingTable(['students', 'student', 'student_lists', 'student_list']);
             $auditorsTable = $this->firstExistingTable(['auditors', 'auditor', 'auditor_lists', 'auditor_list']);
             $examsTable    = $this->firstExistingTable(['exams', 'exam', 'exam_lists', 'exam_list']);
@@ -38,7 +52,9 @@ class DashboardController extends Controller
             $answersTable  = $this->firstExistingTable(['correct_answers', 'correct_answer', 'answers', 'answer_keys']);
             $dupTable      = $this->firstExistingTable(['duplicate_rolls', 'duplicate_roll', 'duplicate_roll_numbers', 'duplicate_roll_list']);
 
-            // 2) Total counts
+            // =============================
+            // Total counts
+            // =============================
             if ($studentsTable) $data['total_students'] = DB::table($studentsTable)->count();
             if ($auditorsTable) $data['total_auditors'] = DB::table($auditorsTable)->count();
             if ($examsTable)    $data['total_exams']    = DB::table($examsTable)->count();
@@ -47,37 +63,59 @@ class DashboardController extends Controller
             if ($answersTable)  $data['total_correct_answers'] = DB::table($answersTable)->count();
             if ($dupTable)      $data['total_duplicate_rolls'] = DB::table($dupTable)->count();
 
-            // 3) Latest Students (if table exists)
-            if ($studentsTable) {
-                $createdCol = $this->firstExistingColumn($studentsTable, ['created_at', 'createdAt', 'date', 'created_on']);
+            // =============================
+            // Class statistics (NEW)
+            // =============================
+            if (Schema::hasTable('classes')) {
+                $data['total_classes']    = ClassModel::count();
+                $data['active_classes']   = ClassModel::where('status', 1)->count();
+                $data['inactive_classes'] = ClassModel::where('status', 0)->count();
 
-                $data['latest_students'] = DB::table($studentsTable)
-                    ->when($createdCol, fn($q) => $q->orderByDesc($createdCol))
+                // Latest classes
+                $data['recent_classes'] = ClassModel::latest()
                     ->limit(5)
                     ->get();
             }
 
-            // 4) Latest Results (if table exists)
+            // =============================
+            // Latest Students
+            // =============================
+            if ($studentsTable) {
+                $createdCol = $this->firstExistingColumn(
+                    $studentsTable,
+                    ['created_at', 'createdAt', 'date', 'created_on']
+                );
+
+                $data['latest_students'] = DB::table($studentsTable)
+                    ->when($createdCol, fn ($q) => $q->orderByDesc($createdCol))
+                    ->limit(5)
+                    ->get();
+            }
+
+            // =============================
+            // Latest Results
+            // =============================
             if ($resultsTable) {
-                $createdCol = $this->firstExistingColumn($resultsTable, ['created_at', 'createdAt', 'date', 'created_on']);
+                $createdCol = $this->firstExistingColumn(
+                    $resultsTable,
+                    ['created_at', 'createdAt', 'date', 'created_on']
+                );
 
                 $data['latest_results'] = DB::table($resultsTable)
-                    ->when($createdCol, fn($q) => $q->orderByDesc($createdCol))
+                    ->when($createdCol, fn ($q) => $q->orderByDesc($createdCol))
                     ->limit(5)
                     ->get();
             }
 
         } catch (\Throwable $e) {
-            // keep defaults (no crash)
+            // Keep defaults (dashboard never crashes)
         }
 
-        // ✅ Make sure this blade exists:
-        // resources/views/backend/admin/pages/dashboard.blade.php
         return view('backend.admin.pages.dashboard', compact('data'));
     }
 
     /**
-     * Return first table name that exists in DB, otherwise null.
+     * Return first table name that exists in DB
      */
     private function firstExistingTable(array $candidates): ?string
     {
@@ -90,7 +128,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Return first column name that exists for a given table, otherwise null.
+     * Return first column name that exists for a given table
      */
     private function firstExistingColumn(string $table, array $candidates): ?string
     {

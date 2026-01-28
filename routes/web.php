@@ -71,9 +71,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('duplicate-rolls', DuplicateRollController::class)
             ->only(['index', 'create', 'store', 'destroy']);
 
-        // ✅ Results
+        // ✅ Results 
         Route::resource('results', ResultController::class)
             ->only(['index', 'create', 'store', 'destroy']);
+       // ✅ classes
+        Route::resource('classes', \App\Http\Controllers\Admin\ClassController::class)
+    ->except(['show']);
+
 
         // ✅ Profile (FIXED)
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');

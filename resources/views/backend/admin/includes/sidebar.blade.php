@@ -3,7 +3,7 @@
 <nav class="sidebar">
     <div class="sidebar-header">
         <a href="{{ url('/') }}" class="sidebar-brand">
-            SMS<span></span>
+            SMS Admin<span></span>
         </a>
 
         {{-- ✅ NobleUI toggler (works with template.js) --}}
@@ -38,33 +38,15 @@
             </li>
 
             {{-- Classes & Sections --}}
-            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'active' : '' }}">
-                <a class="nav-link" data-bs-toggle="collapse" href="#classMenu" role="button"
-                   aria-expanded="{{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'true' : 'false' }}"
-                   aria-controls="classMenu">
-                    <i class="fa-solid fa-school"></i>
-                    <span class="link-title">Classes & Sections</span>
-                    <i class="fa-solid fa-chevron-down ms-auto"></i>
-                </a>
+            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'classes' ? 'active' : '' }}">
+    <a href="{{ route('admin.classes.index') }}" class="nav-link">
+        <span>
+            <i class="fa-solid fa-school"></i>
+            <span class="link-title">Classes</span>
+        </span>
+    </a>
+</li>
 
-                <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'show' : '' }}"
-                     id="classMenu">
-                    <ul class="nav sub-menu">
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/classes/add') }}" class="nav-link">Add Class</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/classes/list') }}" class="nav-link">Class List</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/sections/add') }}" class="nav-link">Add Section</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/sections/list') }}" class="nav-link">Section List</a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
 
             {{-- Departments --}}
             <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'active' : '' }}">

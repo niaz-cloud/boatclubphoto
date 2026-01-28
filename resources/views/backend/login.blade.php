@@ -55,12 +55,16 @@
                                 </div>
                                 <div class="col-md-8 ps-md-0">
                                     <div class="auth-form-wrapper px-4 py-5">
-                                        <a href="" class="noble-ui-logo d-block mb-2">DBA<span>Clinic</span></a>
+                                       <a href="" class="noble-ui-logo d-block mb-2">
+    {{ config('app.name') }}
+</a>
+
+
                                         @if(session('error'))
                                             <div class="popupRightBottom text-danger timeout mt-1">
                                                 {{ session('error') }}</div>
                                         @endif
-<form class="forms-sample" action="{{ route('admin.login.submit') }}" method="POST">
+                                       <form class="forms-sample" action="{{ route('admin.login.submit') }}" method="POST">
                                             @csrf
                                             <div class="mb-3">
                                                 <label for="userEmail" class="form-label">Email address</label>
