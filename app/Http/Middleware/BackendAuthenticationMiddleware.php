@@ -6,6 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Middleware\BackendAuthenticationMiddleware;
+
+$middleware->alias([
+    'admin.auth' => AdminAuthenticationMiddleware::class,
+    'backend.auth' => BackendAuthenticationMiddleware::class,
+]);
 
 class BackendAuthenticationMiddleware
 {

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RoomCategory extends Model
+class Student extends Model
 {
     use HasFactory;
+    protected $fillable = ['roll_number', 'name', 'phone'];
+
 }

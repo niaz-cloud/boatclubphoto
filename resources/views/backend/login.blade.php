@@ -60,7 +60,7 @@
                                             <div class="popupRightBottom text-danger timeout mt-1">
                                                 {{ session('error') }}</div>
                                         @endif
-                                        <form class="forms-sample" action="{{ route('login') }}" method="POST">
+<form class="forms-sample" action="{{ route('admin.login.submit') }}" method="POST">
                                             @csrf
                                             <div class="mb-3">
                                                 <label for="userEmail" class="form-label">Email address</label>

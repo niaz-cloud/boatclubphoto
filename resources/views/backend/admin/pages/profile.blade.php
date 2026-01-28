@@ -23,7 +23,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-title">  Your Profile</h6>
+                        <h6 class="card-title"> Update Your Profile</h6>
                        
                         <form action="{{ route('admin.profile.info.update') }}" method="post" enctype="multipart/form-data">
                             @csrf

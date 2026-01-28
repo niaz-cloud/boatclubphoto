@@ -1,10 +1,13 @@
-<!-- partial:partials/_sidebar.html -->
+<!-- partial:partials/_sidebar.blade.php -->
+
 <nav class="sidebar">
     <div class="sidebar-header">
         <a href="{{ url('/') }}" class="sidebar-brand">
-            DBA<span>Clinic</span>
+            SMS<span></span>
         </a>
-        <div class="sidebar-toggler ">
+
+        {{-- ✅ NobleUI toggler (works with template.js) --}}
+        <div class="sidebar-toggler">
             <span></span>
             <span></span>
             <span></span>
@@ -13,168 +16,159 @@
 
     <div class="sidebar-body">
         <ul class="nav">
-            <li class="nav-item nav-category">ADMIN</li>
+
+            <li class="nav-item nav-category">Admin</li>
 
             {{-- Dashboard --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'dashboard' ? 'active' : '' }}">
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'dashboard') ? 'active' : '' }}">
                 <a href="{{ route('admin.dashboard') }}" class="nav-link">
                     <i class="fa-solid fa-chart-line"></i>
                     <span class="link-title">Dashboard</span>
                 </a>
             </li>
 
-            <li class="nav-item nav-category mt-3">ACCOUNTS PART</li>
+            <li class="nav-item nav-category">Student Management</li>
 
-         {{-- Room Manage Dropdown --}}
-<li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['room_cat_add','room_cat_list']) ? 'active' : '' }}">
-    <a class="nav-link" data-bs-toggle="collapse" href="#roomMenu" role="button"
-       aria-expanded="false" aria-controls="roomMenu">
-        <i class="fa-solid fa-bed"></i>
-        <span class="link-title">Room Manage</span>
-        <i class="link-arrow" data-feather="chevron-down"></i>
-    </a>
-
-    <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['room_cat_add','room_cat_list']) ? 'show' : '' }}"
-         id="roomMenu">
-        <ul class="nav sub-menu">
-            <li class="nav-item">
-                <a href="{{ url('/admin/room-categories/add') }}" class="nav-link">Room Categories Add</a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ url('/admin/room-categories/list') }}" class="nav-link">Room Categories List</a>
-            </li>
-        </ul>
-    </div>
-</li>
-
-
-          {{-- Invoice Manage Dropdown --}}
-<li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['invoice_add','checked_in_guest','due_list','full_paid_list','booked_list']) ? 'active' : '' }}">
-    <a class="nav-link" data-bs-toggle="collapse" href="#invoiceMenu" role="button"
-       aria-expanded="false" aria-controls="invoiceMenu">
-        <i class="fa-solid fa-file-invoice"></i>
-        <span class="link-title">Invoice Manage</span>
-        <i class="link-arrow" data-feather="chevron-down"></i>
-    </a>
-
-    <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['invoice_add','checked_in_guest','due_list','full_paid_list','booked_list']) ? 'show' : '' }}"
-         id="invoiceMenu">
-        <ul class="nav sub-menu">
-            <li class="nav-item">
-                <a href="{{ url('/admin/invoice-add') }}" class="nav-link">Invoice Add</a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{{ url('/admin/checked-in-guest') }}" class="nav-link">Checked-in Guest</a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{{ url('/admin/due-list') }}" class="nav-link">Due List</a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{{ url('/admin/full-paid-list') }}" class="nav-link">Full Paid List</a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{{ url('/admin/booked-list') }}" class="nav-link">Booked List</a>
-            </li>
-        </ul>
-    </div>
-</li>
-
-
-            {{-- Payment List --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'payment_list' ? 'active' : '' }}">
-                <a href="{{ url('/admin/payment-list') }}" class="nav-link">
-                    <i class="fa-solid fa-money-bill-wave"></i>
-                    <span class="link-title">Payment List</span>
+            {{-- Students --}}
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'students') ? 'active' : '' }}">
+                <a href="{{ route('admin.students.index') }}" class="nav-link">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span class="link-title">Students</span>
                 </a>
             </li>
 
-            {{-- Guests Manage --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'guests_manage' ? 'active' : '' }}">
-                <a href="{{ url('/admin/guests-manage') }}" class="nav-link">
-                    <i class="fa-solid fa-users"></i>
-                    <span class="link-title">Guests Manage</span>
+            {{-- Classes & Sections --}}
+            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'active' : '' }}">
+                <a class="nav-link" data-bs-toggle="collapse" href="#classMenu" role="button"
+                   aria-expanded="{{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'true' : 'false' }}"
+                   aria-controls="classMenu">
+                    <i class="fa-solid fa-school"></i>
+                    <span class="link-title">Classes & Sections</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
+                </a>
+
+                <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['class_add','class_list','section_add','section_list']) ? 'show' : '' }}"
+                     id="classMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/classes/add') }}" class="nav-link">Add Class</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/classes/list') }}" class="nav-link">Class List</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/sections/add') }}" class="nav-link">Add Section</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/sections/list') }}" class="nav-link">Section List</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            {{-- Departments --}}
+            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'active' : '' }}">
+                <a class="nav-link" data-bs-toggle="collapse" href="#deptMenu" role="button"
+                   aria-expanded="{{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'true' : 'false' }}"
+                   aria-controls="deptMenu">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span class="link-title">Departments</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
+                </a>
+
+                <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'show' : '' }}"
+                     id="deptMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/departments/add') }}" class="nav-link">Add Department</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/admin/departments/list') }}" class="nav-link">Department List</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item nav-category">Academic</li>
+
+            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['teacher_add','teacher_list']) ? 'active' : '' }}">
+                <a href="{{ url('/admin/teachers') }}" class="nav-link">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span class="link-title">Teachers</span>
                 </a>
             </li>
 
-            {{-- Account Management --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'account_management' ? 'active' : '' }}">
-                <a href="{{ url('/admin/account-management') }}" class="nav-link">
-                    <i class="fa-solid fa-user-gear"></i>
-                    <span class="link-title">Account Management</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'subjects') ? 'active' : '' }}">
+                <a href="{{ url('/admin/subjects') }}" class="nav-link">
+                    <i class="fa-solid fa-book"></i>
+                    <span class="link-title">Subjects</span>
                 </a>
             </li>
 
-            {{-- Report Management --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'report_management' ? 'active' : '' }}">
-                <a href="{{ url('/admin/report-management') }}" class="nav-link">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span class="link-title">Report Management</span>
+            <li class="nav-item nav-category">Attendance</li>
+
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'attendance') ? 'active' : '' }}">
+                <a href="{{ url('/admin/attendance') }}" class="nav-link">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span class="link-title">Attendance</span>
                 </a>
             </li>
 
-            {{-- Notification --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'notification' ? 'active' : '' }}">
-                <a href="{{ url('/admin/notification') }}" class="nav-link">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="link-title">Notification</span>
+            <li class="nav-item nav-category">Exams & Results</li>
+
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'exams') ? 'active' : '' }}">
+                <a href="{{ url('/admin/exams') }}" class="nav-link">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span class="link-title">Exams</span>
                 </a>
             </li>
 
-            {{-- Pad Setting --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'pad_setting' ? 'active' : '' }}">
-                <a href="{{ url('/admin/pad-setting') }}" class="nav-link">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span class="link-title">Pad Setting</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'results') ? 'active' : '' }}">
+                <a href="{{ route('admin.results.index') }}" class="nav-link">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                    <span class="link-title">Results</span>
                 </a>
             </li>
 
-            <li class="nav-item nav-category mt-3">WEBSITE PART</li>
-
-            {{-- Slider --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'slider' ? 'active' : '' }}">
-                <a href="{{ url('/admin/slider') }}" class="nav-link">
-                    <i class="fa-solid fa-images"></i>
-                    <span class="link-title">Slider</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'omr_errors') ? 'active' : '' }}">
+                <a href="{{ route('admin.omr_errors.index') }}" class="nav-link">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span class="link-title">OMR Errors</span>
                 </a>
             </li>
 
-            {{-- Common Pages --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'common_pages' ? 'active' : '' }}">
-                <a href="{{ url('/admin/common-pages') }}" class="nav-link">
-                    <i class="fa-solid fa-file-lines"></i>
-                    <span class="link-title">Common Pages</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'correct_answers') ? 'active' : '' }}">
+                <a href="{{ route('admin.correct_answers.index') }}" class="nav-link">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span class="link-title">Correct Answers</span>
                 </a>
             </li>
 
-            {{-- Notices Manage --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'notices_manage' ? 'active' : '' }}">
-                <a href="{{ url('/admin/notices-manage') }}" class="nav-link">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span class="link-title">Notices Manage</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'auditors') ? 'active' : '' }}">
+                <a href="{{ route('admin.auditors.index') }}" class="nav-link">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span class="link-title">Auditors</span>
                 </a>
             </li>
 
-            {{-- Staffs Manage --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'staffs_manage' ? 'active' : '' }}">
-                <a href="{{ url('/admin/staffs-manage') }}" class="nav-link">
-                    <i class="fa-solid fa-user-tie"></i>
-                    <span class="link-title">Staffs Manage</span>
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'duplicate_rolls') ? 'active' : '' }}">
+                <a href="{{ route('admin.duplicate-rolls.index') }}" class="nav-link">
+                    <i class="fa-solid fa-copy"></i>
+                    <span class="link-title">Duplicate Rolls</span>
                 </a>
             </li>
 
-            {{-- Partners Manage --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'partners_manage' ? 'active' : '' }}">
-                <a href="{{ url('/admin/partners-manage') }}" class="nav-link">
-                    <i class="fa-solid fa-handshake"></i>
-                    <span class="link-title">Partners Manage</span>
+            <li class="nav-item nav-category">Settings</li>
+
+            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'settings') ? 'active' : '' }}">
+                <a href="{{ url('/admin/settings') }}" class="nav-link">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="link-title">Settings</span>
                 </a>
             </li>
 
         </ul>
     </div>
 </nav>
+
 <!-- partial -->

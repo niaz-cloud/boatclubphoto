@@ -3,22 +3,11 @@
 namespace App\Http\Controllers\backend\admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\AdminAuthenticationMiddleware;
-use App\Http\Middleware\BackendAuthenticationMiddleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class DashboardController extends Controller implements HasMiddleware
+class DashboardController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            BackendAuthenticationMiddleware::class,
-            AdminAuthenticationMiddleware::class
-        ];
-    }
-
     public function dashboard()
     {
         $data = [];
@@ -27,61 +16,63 @@ class DashboardController extends Controller implements HasMiddleware
         $data['active_menu'] = 'dashboard';
         $data['page_title']  = 'Dashboard';
 
-        // Default values (so blade never breaks)
-        $data['single_room']       = 0;
-        $data['super_deluxe_room'] = 0;
-        $data['double_room']       = 0;
-        $data['alpha_room']        = 0;
-        $data['royal_suite']       = 0;
-        $data['king_appt']         = 0;
+        // ✅ Defaults (so blade never breaks)
+        $data['total_students']        = 0;
+        $data['total_auditors']        = 0;
+        $data['total_exams']           = 0;
+        $data['total_results']         = 0;
+        $data['total_omr_errors']      = 0;
+        $data['total_correct_answers'] = 0;
+        $data['total_duplicate_rolls'] = 0;
 
-        $data['total_guests']    = 0;
-        $data['total_invoice']   = 0;
-        $data['total_accounts']  = 0;
+        $data['latest_students'] = collect();
+        $data['latest_results']  = collect();
 
-        // ✅ Detect tables/columns and fill counts
         try {
-            // 1) Detect rooms table
-            $roomsTable = $this->firstExistingTable([
-                'rooms', 'room', 'room_manage', 'room_manages', 'room_lists', 'room_list',
-                'hotel_rooms', 'tbl_rooms'
-            ]);
+            // 1) Detect tables
+            $studentsTable = $this->firstExistingTable(['students', 'student', 'student_lists', 'student_list']);
+            $auditorsTable = $this->firstExistingTable(['auditors', 'auditor', 'auditor_lists', 'auditor_list']);
+            $examsTable    = $this->firstExistingTable(['exams', 'exam', 'exam_lists', 'exam_list']);
+            $resultsTable  = $this->firstExistingTable(['results', 'result', 'result_lists', 'result_list']);
+            $omrTable      = $this->firstExistingTable(['omr_errors', 'omr_error', 'omrerror', 'omr_errors_list']);
+            $answersTable  = $this->firstExistingTable(['correct_answers', 'correct_answer', 'answers', 'answer_keys']);
+            $dupTable      = $this->firstExistingTable(['duplicate_rolls', 'duplicate_roll', 'duplicate_roll_numbers', 'duplicate_roll_list']);
 
-            // 2) Detect room type column
-            $roomTypeColumn = $roomsTable
-                ? $this->firstExistingColumn($roomsTable, ['room_type', 'type', 'category', 'name', 'title'])
-                : null;
+            // 2) Total counts
+            if ($studentsTable) $data['total_students'] = DB::table($studentsTable)->count();
+            if ($auditorsTable) $data['total_auditors'] = DB::table($auditorsTable)->count();
+            if ($examsTable)    $data['total_exams']    = DB::table($examsTable)->count();
+            if ($resultsTable)  $data['total_results']  = DB::table($resultsTable)->count();
+            if ($omrTable)      $data['total_omr_errors'] = DB::table($omrTable)->count();
+            if ($answersTable)  $data['total_correct_answers'] = DB::table($answersTable)->count();
+            if ($dupTable)      $data['total_duplicate_rolls'] = DB::table($dupTable)->count();
 
-            // 3) Count room types (case-insensitive)
-            if ($roomsTable && $roomTypeColumn) {
-                $data['single_room']       = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['SINGLE ROOM', 'Single Room']);
-                $data['super_deluxe_room'] = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['SUPER DELUXE ROOM', 'Super Deluxe Room']);
-                $data['double_room']       = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['DOUBLE ROOM', 'Double Room']);
-                $data['alpha_room']        = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['ALPHA ROOM', 'Alpha Room']);
-                $data['royal_suite']       = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['ROYAL SUITE', 'Royal Suite']);
-                $data['king_appt']         = $this->countByTypeCI($roomsTable, $roomTypeColumn, ['KING APPT', 'King Appt', 'KING APARTMENT', 'King Apartment']);
+            // 3) Latest Students (if table exists)
+            if ($studentsTable) {
+                $createdCol = $this->firstExistingColumn($studentsTable, ['created_at', 'createdAt', 'date', 'created_on']);
+
+                $data['latest_students'] = DB::table($studentsTable)
+                    ->when($createdCol, fn($q) => $q->orderByDesc($createdCol))
+                    ->limit(5)
+                    ->get();
             }
 
-            // 4) Detect guests/invoices/accounts tables and count rows
-            $guestsTable = $this->firstExistingTable(['guests', 'guest', 'guest_lists', 'guest_list', 'customers', 'clients']);
-            if ($guestsTable) {
-                $data['total_guests'] = DB::table($guestsTable)->count();
-            }
+            // 4) Latest Results (if table exists)
+            if ($resultsTable) {
+                $createdCol = $this->firstExistingColumn($resultsTable, ['created_at', 'createdAt', 'date', 'created_on']);
 
-            $invoicesTable = $this->firstExistingTable(['invoices', 'invoice', 'invoice_lists', 'invoice_list', 'billings', 'bills']);
-            if ($invoicesTable) {
-                $data['total_invoice'] = DB::table($invoicesTable)->count();
-            }
-
-            $accountsTable = $this->firstExistingTable(['accounts', 'account', 'account_lists', 'account_list', 'transactions', 'payments']);
-            if ($accountsTable) {
-                $data['total_accounts'] = DB::table($accountsTable)->count();
+                $data['latest_results'] = DB::table($resultsTable)
+                    ->when($createdCol, fn($q) => $q->orderByDesc($createdCol))
+                    ->limit(5)
+                    ->get();
             }
 
         } catch (\Throwable $e) {
-            // keep defaults (0) if anything fails
+            // keep defaults (no crash)
         }
 
+        // ✅ Make sure this blade exists:
+        // resources/views/backend/admin/pages/dashboard.blade.php
         return view('backend.admin.pages.dashboard', compact('data'));
     }
 
@@ -109,19 +100,5 @@ class DashboardController extends Controller implements HasMiddleware
             }
         }
         return null;
-    }
-
-    /**
-     * Case-insensitive count helper:
-     * Tries multiple possible labels (e.g., "SINGLE ROOM", "Single Room").
-     */
-    private function countByTypeCI(string $table, string $column, array $labels): int
-    {
-        // Use LOWER() so it works regardless of DB collation/case
-        $lowered = array_map(fn ($v) => mb_strtolower($v), $labels);
-
-        return DB::table($table)
-            ->whereIn(DB::raw("LOWER($column)"), $lowered)
-            ->count();
     }
 }
