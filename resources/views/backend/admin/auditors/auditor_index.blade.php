@@ -3,41 +3,39 @@
 @section('content')
 <div class="page-content">
 
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
-        <h5 class="mb-0 fw-semibold">Auditor List</h5>
-
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.auditors.create') }}" class="btn btn-success btn-sm px-3">
-                + Add Auditor
-            </a>
-
-            <a href="#" class="btn btn-warning btn-sm px-3">
-                <i class="fa-solid fa-download"></i> Excel
-            </a>
-        </div>
+    {{-- Top Right Buttons --}}
+    <div class="d-flex justify-content-end align-items-center gap-2 mb-3 mt-4">
+        <a href="{{ route('admin.auditors.create') }}" class="btn btn-success btn-sm px-3">
+            + Add Auditor
+        </a>
+        <a href="#" class="btn btn-warning btn-sm px-3">
+            <i class="fa-solid fa-download"></i> Excel
+        </a>
     </div>
 
-    {{-- Success Message --}}
+    {{-- Flash --}}
     @if(session('success'))
         <div class="alert alert-success py-2 mb-2">
             {{ session('success') }}
         </div>
     @endif
 
-    <div class="card">
-        <div class="card-body p-2">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+
+            <h4 class="text-center fw-bold mb-3">Auditor List</h4>
+
             <div class="table-responsive">
-                <table id="auditorsTable" class="table table-bordered table-sm align-middle mb-0">
-                    <thead class="table-light">
+                <table id="auditorsTable" class="table restaurant-dt align-middle w-100">
+                    <thead>
                         <tr>
                             <th style="width:60px;">SL</th>
                             <th style="width:90px;">PHOTO</th>
                             <th>NAME</th>
-                            <th style="width:160px;">PHONE</th>
-                            <th style="width:240px;">EMAIL</th>
+                            <th style="width:150px;">PHONE</th>
+                            <th style="width:260px;">EMAIL</th>
                             <th style="width:120px;">STATUS</th>
-                            <th style="width:120px;">ACTION</th>
+                            <th style="width:110px;">ACTION</th>
                         </tr>
                     </thead>
 
@@ -46,38 +44,29 @@
                             <tr>
                                 <td>{{ $key + 1 }}</td>
 
-                                {{-- PHOTO (Avatar Logic) --}}
-                                <td class="text-center">
+                                {{-- Photo --}}
+                                <td>
                                     @php
-                                        $photoPath = $auditor->photo
+                                        $photo = $auditor->photo
                                             ? asset('uploads/auditors/'.$auditor->photo)
                                             : asset('backend_assets/images/default-avatar.jpg');
                                     @endphp
-
-                                    <img
-                                        src="{{ $photoPath }}"
-                                        onerror="this.onerror=null;this.src='{{ asset('backend_assets/images/default-avatar.jpg') }}';"
-                                        class="rounded-circle border"
-                                        style="width:45px;height:45px;object-fit:cover;"
-                                        alt="Auditor"
-                                    >
+                                    <img src="{{ $photo }}"
+                                         class="restaurant-avatar"
+                                         alt="Auditor"
+                                         onerror="this.onerror=null;this.src='{{ asset('backend_assets/images/default-avatar.jpg') }}';">
                                 </td>
 
-                                {{-- NAME --}}
+                                {{-- Name --}}
                                 <td>
                                     <div class="fw-semibold">{{ $auditor->name }}</div>
-                                    <small class="text-muted">
-                                        A.ID: {{ $auditor->auditor_code ?? 'N/A' }}
-                                    </small>
+                                    <small class="text-muted">A.ID: {{ $auditor->auditor_code ?? 'N/A' }}</small>
                                 </td>
 
-                                {{-- PHONE --}}
                                 <td>{{ $auditor->phone ?? '-' }}</td>
-
-                                {{-- EMAIL --}}
                                 <td>{{ $auditor->email ?? '-' }}</td>
 
-                                {{-- STATUS --}}
+                                {{-- Status --}}
                                 <td>
                                     @if((int)$auditor->status === 1)
                                         <span class="badge bg-success">Active</span>
@@ -86,10 +75,10 @@
                                     @endif
                                 </td>
 
-                                {{-- ACTION --}}
-                                <td class="text-center">
+                                {{-- Action --}}
+                                <td>
                                     <a href="{{ route('admin.auditors.edit', $auditor->id) }}"
-                                       class="btn btn-success btn-sm"
+                                       class="restaurant-action restaurant-edit"
                                        title="Edit">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
@@ -102,7 +91,7 @@
                                         @method('DELETE')
 
                                         <button type="submit"
-                                                class="btn btn-danger btn-sm"
+                                                class="restaurant-action restaurant-delete"
                                                 title="Delete">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
@@ -117,36 +106,102 @@
                             </tr>
                         @endforelse
                     </tbody>
-
                 </table>
             </div>
+
         </div>
     </div>
-
 </div>
 @endsection
 
-{{-- ================= STYLES ================= --}}
+
 @push('css')
 <style>
-    .dataTables_wrapper .dataTables_length select,
-    .dataTables_wrapper .dataTables_filter input {
-        padding: .25rem .5rem;
-        font-size: .875rem;
+    /* Keep controls tight like Restaurant */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{
+        margin-bottom: 10px !important;
     }
 
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate {
-        font-size: .875rem;
+    /* Search box */
+    .dataTables_wrapper .dataTables_filter input{
+        width: 220px !important;
+        height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
-    table.dataTable thead th {
-        white-space: nowrap;
+    /* ✅ Show entries dropdown (fixed ugly size) */
+    .dataTables_wrapper .dataTables_length select{
+        min-width: 72px !important;
+        height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 14px !important;
+        line-height: 34px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px !important;
+        background: #fff !important;
+        outline: none !important;
+        box-shadow: none !important;
+        appearance: auto !important;
     }
+
+    /* Table header */
+    table.restaurant-dt thead th{
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #5b6ea6 !important;
+        text-transform: uppercase !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 10px 10px !important;
+        white-space: nowrap !important;
+        background: transparent !important;
+    }
+
+    /* Table body */
+    table.restaurant-dt tbody td{
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 12px 10px !important;
+        font-size: 14px !important;
+        vertical-align: middle !important;
+    }
+
+    /* Avatar */
+    .restaurant-avatar{
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        background: #f3f4f6 !important;
+    }
+
+    /* Action buttons */
+    .restaurant-action{
+        width: 32px !important;
+        height: 28px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        margin-right: 6px !important;
+    }
+    .restaurant-edit{ background: #16a34a !important; }
+    .restaurant-delete{ background: #f43f5e !important; }
+    .restaurant-action i{ color: #fff !important; font-size: 13px !important; }
+
+    /* Remove bottom border */
+    table.dataTable.no-footer{ border-bottom: 0 !important; }
 </style>
 @endpush
 
-{{-- ================= SCRIPTS ================= --}}
+
 @push('js')
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -157,7 +212,11 @@
                 order: [[0, 'asc']],
                 columnDefs: [
                     { orderable: false, targets: [1, 6] }
-                ]
+                ],
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search"
+                }
             });
         }
     });

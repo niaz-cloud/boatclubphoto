@@ -42,31 +42,29 @@
                         </div>
                     </div>
 
-                    <ul class="list-unstyled p-1">
+                   <ul class="list-unstyled p-1">
+    {{-- Profile --}}
+    <li class="dropdown-item py-2">
+        <a href="{{ route('admin.profile') }}" class="text-body ms-0 d-flex align-items-center">
+            <i class="me-2 icon-md" data-feather="user"></i>
+            <span>Profile</span>
+        </a>
+    </li>
 
-                        {{-- Profile --}}
-                        <li class="dropdown-item py-2">
-                            <a href="{{ route('admin.profile.edit') }}"
-                               class="text-body ms-0 d-flex align-items-center">
-                                <i class="me-2 icon-md" data-feather="user"></i>
-                                <span>Profile</span>
-                            </a>
-                        </li>
+    {{-- Logout (must be POST) --}}
+    <li class="dropdown-item py-2">
+        <form method="POST" action="{{ route('admin.logout') }}">
+            @csrf
+            <button type="submit"
+                class="text-body ms-0 d-flex align-items-center w-100"
+                style="background:none;border:0;padding:0;">
+                <i class="me-2 icon-md" data-feather="log-out"></i>
+                <span>Log Out</span>
+            </button>
+        </form>
+    </li>
+</ul>
 
-                        {{-- Logout (POST) --}}
-                        <li class="dropdown-item py-2">
-                            <form method="POST" action="{{ route('admin.logout') }}" class="m-0 p-0">
-                                @csrf
-                                <button type="submit"
-                                        class="text-body ms-0 d-flex align-items-center w-100"
-                                        style="background:none;border:none;padding:0;">
-                                    <i class="me-2 icon-md" data-feather="log-out"></i>
-                                    <span>Log Out</span>
-                                </button>
-                            </form>
-                        </li>
-
-                    </ul>
                 </div>
             </li>
 

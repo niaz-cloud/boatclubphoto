@@ -13,10 +13,13 @@ class OmrErrorController extends Controller
     {
         $data['active_menu'] = 'omr_errors';
 
+        // Exams for filter dropdown
         $exams = Exam::orderBy('id', 'desc')->get();
 
+        // Main query
         $query = OmrError::with('exam')->latest();
 
+        // Filters
         if ($request->filled('exam_id')) {
             $query->where('exam_id', $request->exam_id);
         }
@@ -29,7 +32,14 @@ class OmrErrorController extends Controller
             $query->where('set_number', trim($request->set_number));
         }
 
-        $errors = $query->paginate(20)->withQueryString();
+        /**
+         * ✅ DataTables mode:
+         * We return all filtered rows so DataTables can handle:
+         * - Show entries
+         * - Search
+         * - Pagination UI
+         */
+        $errors = $query->get();
 
         return view(
             'backend.admin.omr_errors.omr_error_index',

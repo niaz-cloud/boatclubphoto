@@ -3,7 +3,7 @@
 @section('content')
 <div class="page-content">
 
-    {{-- Header --}}
+    {{-- Top header (keep back button) --}}
     <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
         <div>
             <h5 class="mb-0 fw-semibold">Add Result</h5>
@@ -20,19 +20,22 @@
         <div class="alert alert-danger py-2 mb-2">{{ session('error') }}</div>
     @endif
 
-    <div class="card">
-        <div class="card-body">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+
+            {{-- Center title like Restaurant --}}
+            <h4 class="text-center fw-bold mb-4">Add Result</h4>
 
             <form action="{{ route('admin.results.store') }}" method="POST">
                 @csrf
 
+                {{-- 4 column layout like Restaurant --}}
                 <div class="row g-3">
 
                     {{-- Exam --}}
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold">Exam <span class="text-danger">*</span></label>
-
-                        <select id="exam_id" name="exam_id" class="form-select">
+                        <select id="exam_id" name="exam_id" class="form-select form-control-like">
                             <option value="">-- Select Exam --</option>
                             @foreach($exams as $exam)
                                 <option value="{{ $exam->id }}"
@@ -44,18 +47,17 @@
                                 </option>
                             @endforeach
                         </select>
-
                         @error('exam_id')
                             <small class="text-danger d-block">{{ $message }}</small>
                         @enderror
                     </div>
 
                     {{-- Roll --}}
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold">Roll Number <span class="text-danger">*</span></label>
                         <input type="text"
                                name="roll_number"
-                               class="form-control"
+                               class="form-control form-control-like"
                                value="{{ old('roll_number') }}"
                                placeholder="e.g. 20240012">
                         @error('roll_number')
@@ -70,7 +72,7 @@
                                min="0"
                                id="correct_answer"
                                name="correct_answer"
-                               class="form-control"
+                               class="form-control form-control-like"
                                value="{{ old('correct_answer', 0) }}">
                         @error('correct_answer')
                             <small class="text-danger d-block">{{ $message }}</small>
@@ -84,34 +86,41 @@
                                min="0"
                                id="wrong_answer"
                                name="wrong_answer"
-                               class="form-control"
+                               class="form-control form-control-like"
                                value="{{ old('wrong_answer', 0) }}">
                         @error('wrong_answer')
                             <small class="text-danger d-block">{{ $message }}</small>
                         @enderror
                     </div>
 
-                    {{-- Preview obtained --}}
-                    <div class="col-md-3">
+                    {{-- Obtained Preview --}}
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Obtained Mark (Preview)</label>
-                        <input type="text" id="obtained_preview" class="form-control" value="0.00" disabled>
+                        <input type="text"
+                               id="obtained_preview"
+                               class="form-control form-control-like bg-light"
+                               value="0.00"
+                               disabled>
                         <small class="text-muted">Auto preview from exam rules</small>
                     </div>
 
-                    {{-- Preview status --}}
-                    <div class="col-md-3">
+                    {{-- Status Preview --}}
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Status (Preview)</label>
-                        <input type="text" id="status_preview" class="form-control" value="Pending" disabled>
+                        <input type="text"
+                               id="status_preview"
+                               class="form-control form-control-like bg-light"
+                               value="Pending"
+                               disabled>
                         <small class="text-muted">Pass/Fail preview</small>
                     </div>
 
                 </div>
 
-                <hr class="my-3">
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success px-4">Save</button>
-                    <a href="{{ route('admin.results.index') }}" class="btn btn-light px-4">Cancel</a>
+                {{-- Center buttons--}}
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary px-5 btn-restaurant-save">Save</button>
+                    <a href="{{ route('admin.results.index') }}" class="btn btn-light px-5 ms-2">Cancel</a>
                 </div>
 
             </form>
@@ -121,6 +130,24 @@
 
 </div>
 @endsection
+
+@push('css')
+<style>
+    /* Match Restaurant form spacing/inputs */
+    .form-control-like{
+        height: 38px;
+        border-radius: 4px;
+    }
+    .btn-restaurant-save{
+        background: #6571ff;
+        border-color: #6571ff;
+    }
+    .btn-restaurant-save:hover{
+        background: #4f5bff;
+        border-color: #4f5bff;
+    }
+</style>
+@endpush
 
 @push('js')
 <script>

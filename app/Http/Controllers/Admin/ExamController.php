@@ -11,7 +11,8 @@ class ExamController extends Controller
     public function index()
     {
         $data['active_menu'] = 'exams';
-        $exams = Exam::latest()->paginate(10);
+      $exams = Exam::latest()->get();
+
         return view('backend.admin.exams.index', compact('data', 'exams'));
     }
 

@@ -48,53 +48,7 @@
 </li>
 
 
-            {{-- Departments --}}
-            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'active' : '' }}">
-                <a class="nav-link" data-bs-toggle="collapse" href="#deptMenu" role="button"
-                   aria-expanded="{{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'true' : 'false' }}"
-                   aria-controls="deptMenu">
-                    <i class="fa-solid fa-building-columns"></i>
-                    <span class="link-title">Departments</span>
-                    <i class="fa-solid fa-chevron-down ms-auto"></i>
-                </a>
-
-                <div class="collapse {{ in_array(($data['active_menu'] ?? ''), ['dept_add','dept_list']) ? 'show' : '' }}"
-                     id="deptMenu">
-                    <ul class="nav sub-menu">
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/departments/add') }}" class="nav-link">Add Department</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ url('/admin/departments/list') }}" class="nav-link">Department List</a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-
-            <li class="nav-item nav-category">Academic</li>
-
-            <li class="nav-item {{ in_array(($data['active_menu'] ?? ''), ['teacher_add','teacher_list']) ? 'active' : '' }}">
-                <a href="{{ url('/admin/teachers') }}" class="nav-link">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span class="link-title">Teachers</span>
-                </a>
-            </li>
-
-            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'subjects') ? 'active' : '' }}">
-                <a href="{{ url('/admin/subjects') }}" class="nav-link">
-                    <i class="fa-solid fa-book"></i>
-                    <span class="link-title">Subjects</span>
-                </a>
-            </li>
-
-            <li class="nav-item nav-category">Attendance</li>
-
-            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'attendance') ? 'active' : '' }}">
-                <a href="{{ url('/admin/attendance') }}" class="nav-link">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <span class="link-title">Attendance</span>
-                </a>
-            </li>
+          
 
             <li class="nav-item nav-category">Exams & Results</li>
 

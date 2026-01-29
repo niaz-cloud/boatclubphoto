@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\backend\admin\DashboardController;
 use App\Http\Controllers\backend\admin\AdminAuthController;
-use App\Http\Controllers\backend\admin\AdminProfileController;
+use App\Http\Controllers\backend\admin\ProfileController;
+
 
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\AuditorController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ResultController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\OmrErrorController;
 use App\Http\Controllers\Admin\CorrectAnswerController;
+use App\Http\Controllers\Admin\ClassController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,10 +51,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
+        // ✅ Profile
+     // ✅ Profile
+Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+Route::post('/profile/update', [ProfileController::class, 'profile_info_update'])->name('profile.info.update');
+Route::post('/profile/password', [ProfileController::class, 'profile_password_update'])->name('profile.password.update');
+
         // ✅ Resources
-        Route::resource('exams', ExamController::class)->except(['show']);
-        Route::resource('auditors', AuditorController::class)->except(['show']);
         Route::resource('students', StudentController::class)->except(['show']);
+        Route::resource('auditors', AuditorController::class)->except(['show']);
+        Route::resource('exams', ExamController::class)->except(['show']);
+        Route::resource('classes', ClassController::class)->except(['show']);
+
+        // ✅ Results
+        Route::resource('results', ResultController::class)->only(['index', 'create', 'store', 'destroy']);
+
+        // ✅ Duplicate Rolls
+        Route::resource('duplicate-rolls', DuplicateRollController::class)->only(['index', 'create', 'store', 'destroy']);
 
         // ✅ OMR Errors
         Route::get('/omr-errors', [OmrErrorController::class, 'index'])->name('omr_errors.index');
@@ -67,26 +82,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ✅ Auditor Excel Export
         Route::get('/auditors-export', [AuditorController::class, 'export'])->name('auditors.export');
 
-        // ✅ Duplicate Rolls
-        Route::resource('duplicate-rolls', DuplicateRollController::class)
-            ->only(['index', 'create', 'store', 'destroy']);
-
-        // ✅ Results 
-        Route::resource('results', ResultController::class)
-            ->only(['index', 'create', 'store', 'destroy']);
-       // ✅ classes
-        Route::resource('classes', \App\Http\Controllers\Admin\ClassController::class)
-    ->except(['show']);
-
-
-        // ✅ Profile (FIXED)
-        Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
-        Route::post('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
-
-        // ✅ Placeholder view routes
-        Route::view('/classes/add', 'backend.admin.classes.create')->name('classes.add');
-        Route::view('/classes/list', 'backend.admin.classes.index')->name('classes.list');
-
+        // ✅ Placeholder view routes (keep only if you truly use them)
         Route::view('/sections/add', 'backend.admin.sections.create')->name('sections.add');
         Route::view('/sections/list', 'backend.admin.sections.index')->name('sections.list');
 

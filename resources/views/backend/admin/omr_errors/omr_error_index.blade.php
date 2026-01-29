@@ -71,20 +71,22 @@
     </div>
 
     {{-- ================= TABLE SECTION ================= --}}
-    <div class="card">
-        <div class="card-body p-2">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+
+            <h4 class="text-center fw-bold mb-4">OMR Error List</h4>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-sm align-middle mb-0">
-                    <thead class="table-light">
+                <table id="omrErrorsTable" class="table restaurant-dt align-middle w-100">
+                    <thead>
                         <tr>
                             <th style="width:60px;">ID</th>
-                            <th>Exam</th>
-                            <th style="width:120px;">Roll</th>
-                            <th style="width:80px;">Set</th>
-                            <th>File Path</th>
-                            <th>Error Message</th>
-                            <th style="width:90px;">Action</th>
+                            <th>EXAM</th>
+                            <th style="width:120px;">ROLL</th>
+                            <th style="width:80px;">SET</th>
+                            <th>FILE PATH</th>
+                            <th>ERROR MESSAGE</th>
+                            <th style="width:90px;">ACTION</th>
                         </tr>
                     </thead>
 
@@ -95,28 +97,24 @@
                                 <td>{{ $error->exam->name ?? 'N/A' }}</td>
                                 <td>{{ $error->roll_number ?? '-' }}</td>
                                 <td>{{ $error->set_number ?? '-' }}</td>
-                                <td class="text-muted">
-                                    {{ $error->file_path }}
-                                </td>
-                                <td class="text-danger">
-                                    {{ $error->message }}
-                                </td>
+                                <td class="text-muted">{{ $error->file_path }}</td>
+                                <td class="text-danger">{{ $error->message }}</td>
                                 <td>
                                     <form method="POST"
-                                          action="{{ route('admin.omr_errors.destroy', $error->id) }}">
+                                          action="{{ route('admin.omr_errors.destroy', $error->id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Delete this error?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Delete this error?')">
-                                            Delete
+                                        <button type="submit" class="restaurant-action restaurant-delete" title="Delete">
+                                            <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-3">
+                                <td colspan="7" class="text-center text-muted py-4">
                                     No OMR errors found.
                                 </td>
                             </tr>
@@ -125,13 +123,112 @@
                 </table>
             </div>
 
-            {{-- Pagination --}}
-            <div class="mt-2">
-                {{ $errors->links() }}
-            </div>
+            {{-- ❌ remove laravel pagination links because DataTables will paginate --}}
+            {{-- <div class="mt-2">{{ $errors->links() }}</div> --}}
 
         </div>
     </div>
 </div>
 
 @endsection
+
+
+@push('css')
+<style>
+    /* Same Restaurant/Operator DataTable look */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{
+        margin-bottom: 14px;
+    }
+
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_filter label{
+        font-size: 14px;
+        font-weight: 500;
+        color: #475569;
+    }
+
+    .dataTables_wrapper .dataTables_length select{
+        min-width: 80px !important;
+        height: 34px !important;
+        padding: 0 28px 0 10px !important;
+        font-size: 14px !important;
+        line-height: 34px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input{
+        width: 220px;
+        height: 34px;
+        padding: 0 10px;
+        font-size: 14px;
+        line-height: 34px;
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px;
+        background: #fff;
+        outline: none;
+        box-shadow: none;
+    }
+
+    table.restaurant-dt thead th{
+        font-size: 12px;
+        font-weight: 600;
+        color: #5b6ea6;
+        text-transform: uppercase;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 12px 10px !important;
+        white-space: nowrap;
+        background: transparent !important;
+    }
+
+    table.restaurant-dt tbody td{
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 14px 10px !important;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    table.dataTable.no-footer{
+        border-bottom: 0 !important;
+    }
+
+    .restaurant-action{
+        width: 32px;
+        height: 28px;
+        border-radius: 4px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .restaurant-delete{ background: #f43f5e !important; }
+    .restaurant-action i{ color: #fff !important; font-size: 13px; }
+</style>
+@endpush
+
+
+@push('js')
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (window.$ && $.fn.DataTable) {
+            $('#omrErrorsTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: [6] } // Action
+                ],
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search"
+                }
+            });
+        }
+    });
+</script>
+@endpush
