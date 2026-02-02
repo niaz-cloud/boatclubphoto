@@ -27,45 +27,101 @@
                 </a>
             </li>
 
+            {{-- ================= STUDENT MANAGEMENT ================= --}}
             <li class="nav-item nav-category">Student Management</li>
 
-            {{-- Students --}}
-            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'students') ? 'active' : '' }}">
-                <a href="{{ route('admin.students.index') }}" class="nav-link">
+            {{-- Students Manage --}}
+            <li class="nav-item has-sub {{ (($data['active_menu'] ?? '') == 'students') ? 'active' : '' }}">
+                <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#studentsMenu" role="button"
+                   aria-expanded="{{ (($data['active_menu'] ?? '') == 'students') ? 'true' : 'false' }}"
+                   aria-controls="studentsMenu">
                     <i class="fa-solid fa-user-graduate"></i>
-                    <span class="link-title">Students</span>
+                    <span class="link-title ms-2">Students Manage</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
                 </a>
+
+                <div class="collapse {{ (($data['active_menu'] ?? '') == 'students') ? 'show' : '' }}" id="studentsMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.students.create') }}" class="nav-link"> Student Add</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.students.index') }}" class="nav-link"> Student List</a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            {{-- Classes & Sections --}}
-            <li class="nav-item {{ ($data['active_menu'] ?? '') == 'classes' ? 'active' : '' }}">
-    <a href="{{ route('admin.classes.index') }}" class="nav-link">
-        <span>
-            <i class="fa-solid fa-school"></i>
-            <span class="link-title">Classes</span>
-        </span>
-    </a>
-</li>
+            {{-- Classes Manage --}}
+            <li class="nav-item has-sub {{ (($data['active_menu'] ?? '') == 'classes') ? 'active' : '' }}">
+                <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#classesMenu" role="button"
+                   aria-expanded="{{ (($data['active_menu'] ?? '') == 'classes') ? 'true' : 'false' }}"
+                   aria-controls="classesMenu">
+                    <i class="fa-solid fa-school"></i>
+                    <span class="link-title ms-2">Classes Manage</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
+                </a>
 
+                <div class="collapse {{ (($data['active_menu'] ?? '') == 'classes') ? 'show' : '' }}" id="classesMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.classes.create') }}" class="nav-link"> Class Add</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.classes.index') }}" class="nav-link"> Class List</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
-          
-
+            {{-- ================= EXAMS & RESULTS ================= --}}
             <li class="nav-item nav-category">Exams & Results</li>
 
-            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'exams') ? 'active' : '' }}">
-                <a href="{{ url('/admin/exams') }}" class="nav-link">
+            {{-- Exams Manage --}}
+            <li class="nav-item has-sub {{ (($data['active_menu'] ?? '') == 'exams') ? 'active' : '' }}">
+                <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#examsMenu" role="button"
+                   aria-expanded="{{ (($data['active_menu'] ?? '') == 'exams') ? 'true' : 'false' }}"
+                   aria-controls="examsMenu">
                     <i class="fa-solid fa-clipboard-list"></i>
-                    <span class="link-title">Exams</span>
+                    <span class="link-title ms-2">Exams Manage</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
                 </a>
+
+                <div class="collapse {{ (($data['active_menu'] ?? '') == 'exams') ? 'show' : '' }}" id="examsMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.exams.create') }}" class="nav-link"> Exam Add</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.exams.index') }}" class="nav-link"> Exam List</a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            <li class="nav-item {{ (($data['active_menu'] ?? '') == 'results') ? 'active' : '' }}">
-                <a href="{{ route('admin.results.index') }}" class="nav-link">
+            {{-- Results Manage --}}
+            <li class="nav-item has-sub {{ (($data['active_menu'] ?? '') == 'results') ? 'active' : '' }}">
+                <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#resultsMenu" role="button"
+                   aria-expanded="{{ (($data['active_menu'] ?? '') == 'results') ? 'true' : 'false' }}"
+                   aria-controls="resultsMenu">
                     <i class="fa-solid fa-square-poll-vertical"></i>
-                    <span class="link-title">Results</span>
+                    <span class="link-title ms-2">Results Manage</span>
+                    <i class="fa-solid fa-chevron-down ms-auto"></i>
                 </a>
+
+                <div class="collapse {{ (($data['active_menu'] ?? '') == 'results') ? 'show' : '' }}" id="resultsMenu">
+                    <ul class="nav sub-menu">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.results.create') }}" class="nav-link"> Result Add</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.results.index') }}" class="nav-link"> Result List</a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
+            {{-- Single menu items (keep as-is) --}}
             <li class="nav-item {{ (($data['active_menu'] ?? '') == 'omr_errors') ? 'active' : '' }}">
                 <a href="{{ route('admin.omr_errors.index') }}" class="nav-link">
                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -94,6 +150,7 @@
                 </a>
             </li>
 
+            {{-- ================= SETTINGS ================= --}}
             <li class="nav-item nav-category">Settings</li>
 
             <li class="nav-item {{ (($data['active_menu'] ?? '') == 'settings') ? 'active' : '' }}">

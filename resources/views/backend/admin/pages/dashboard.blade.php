@@ -14,50 +14,38 @@
     {{-- TOP STATS --}}
     <div class="row">
 
-        {{-- Total Students --}}
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card text-white" style="background:#2563eb;">
                 <div class="card-body">
-                    <h6 class="text-uppercase">Total Students</h6>
+                    <h6>Total Students</h6>
                     <h2 class="fw-bold">{{ $data['total_students'] }}</h2>
                 </div>
             </div>
         </div>
 
-        {{-- Total Exams --}}
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card text-white" style="background:#dc2626;">
                 <div class="card-body">
-                    <h6 class="text-uppercase">Exams</h6>
+                    <h6>Exams</h6>
                     <h2 class="fw-bold">{{ $data['total_exams'] }}</h2>
-
-                    <div class="mt-2">
-                        <a href="{{ route('admin.exams.index') }}" class="text-white text-decoration-none">
-                            View Exams <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- Total Classes --}}
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card text-white" style="background:#9333ea;">
                 <div class="card-body">
-                    <h6 class="text-uppercase">Classes</h6>
+                    <h6>Classes</h6>
                     <h2 class="fw-bold">{{ $data['total_classes'] }}</h2>
-                    <small class="d-block">
-                        Active: {{ $data['active_classes'] }}
-                    </small>
+                    <small>Active: {{ $data['active_classes'] }}</small>
                 </div>
             </div>
         </div>
 
-        {{-- Total Results --}}
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card text-white" style="background:#16a34a;">
                 <div class="card-body">
-                    <h6 class="text-uppercase">Results</h6>
+                    <h6>Results</h6>
                     <h2 class="fw-bold">{{ $data['total_results'] }}</h2>
                 </div>
             </div>
@@ -74,7 +62,7 @@
                 <div class="card-body">
                     <h6 class="card-title">Recent Classes</h6>
 
-                    <table class="table table-sm mb-0">
+                    <table class="table table-sm">
                         <thead>
                             <tr>
                                 <th>Class</th>
@@ -96,7 +84,7 @@
                             @empty
                                 <tr>
                                     <td colspan="3" class="text-center text-muted">
-                                        No classes found
+                                        No data found
                                     </td>
                                 </tr>
                             @endforelse
@@ -107,34 +95,13 @@
             </div>
         </div>
 
-        {{-- Quick Actions --}}
+        {{-- Pie Chart --}}
         <div class="col-md-6 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Quick Actions</h6>
+                    <h6 class="card-title">Students Per Class</h6>
+                   <canvas id="studentsPieChart" height="250" style="max-height:250px;"></canvas>
 
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <a href="{{ route('admin.students.index') }}">
-                                ➤ Manage Students
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{{ route('admin.classes.index') }}">
-                                ➤ Manage Classes
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="{{ route('admin.results.index') }}">
-                                ➤ View Results
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.exams.index') }}">
-                                ➤ Manage Exams
-                            </a>
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -143,3 +110,56 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById('studentsPieChart');
+
+    if (!canvas) {
+        console.warn('studentsPieChart canvas not found');
+        return;
+    }
+
+    const labels = {!! json_encode($data['students_per_class']->keys()) !!};
+    const values = {!! json_encode($data['students_per_class']->values()) !!};
+
+    console.log("Labels:", labels);
+    console.log("Values:", values);
+
+    if (labels.length === 0 || values.length === 0) {
+        console.warn('No data available for pie chart');
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    '#2563eb', '#dc2626', '#9333ea',
+                    '#16a34a', '#facc15', '#3b82f6',
+                    '#ec4899', '#22c55e', '#a855f7'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+@endpush

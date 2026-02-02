@@ -11,16 +11,19 @@ class ClassController extends Controller
 {
     public function index()
     {
+        $data = [];
         $data['active_menu'] = 'classes';
         $data['page_title']  = 'Classes';
 
-        $classes = ClassModel::latest()->paginate(10);
+        // ✅ DataTable needs full collection (not paginate)
+        $classes = ClassModel::latest()->get();
 
         return view('backend.admin.classes.classes_index', compact('classes', 'data'));
     }
 
     public function create()
     {
+        $data = [];
         $data['active_menu'] = 'classes';
         $data['page_title']  = 'Add Class';
 
@@ -29,27 +32,29 @@ class ClassController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'class_name' => 'required|string|max:100',
-            'class_code' => 'required|string|max:50|unique:classes,class_code',
+        $validated = $request->validate([
+            'class_name'    => 'required|string|max:100',
+            'section'       => 'nullable|string|max:100',
+            'class_code'    => 'required|string|max:50|unique:classes,class_code',
+            'academic_year' => 'nullable|string|max:50',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|in:0,1',
         ]);
 
-        ClassModel::create([
-            'class_name'    => $request->class_name,
-            'section'       => $request->section,
-            'class_code'    => $request->class_code,
-            'academic_year' => $request->academic_year,
-            'description'   => $request->description,
-            'status'        => $request->status ?? 1,
-            'created_by'    => Auth::id(),
-        ]);
+        $validated['class_code'] = trim($validated['class_code']);
+        $validated['status'] = $validated['status'] ?? 1;
+        $validated['created_by'] = Auth::id();
 
-        return redirect()->route('admin.classes.index')
+        ClassModel::create($validated);
+
+        return redirect()
+            ->route('admin.classes.index')
             ->with('success', 'Class created successfully');
     }
 
     public function edit(ClassModel $class)
     {
+        $data = [];
         $data['active_menu'] = 'classes';
         $data['page_title']  = 'Edit Class';
 
@@ -58,14 +63,22 @@ class ClassController extends Controller
 
     public function update(Request $request, ClassModel $class)
     {
-        $request->validate([
-            'class_name' => 'required|string|max:100',
-            'class_code' => 'required|string|max:50|unique:classes,class_code,' . $class->id,
+        $validated = $request->validate([
+            'class_name'    => 'required|string|max:100',
+            'section'       => 'nullable|string|max:100',
+            'class_code'    => 'required|string|max:50|unique:classes,class_code,' . $class->id,
+            'academic_year' => 'nullable|string|max:50',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|in:0,1',
         ]);
 
-        $class->update($request->all());
+        $validated['class_code'] = trim($validated['class_code']);
+        $validated['status'] = $validated['status'] ?? $class->status;
 
-        return redirect()->route('admin.classes.index')
+        $class->update($validated);
+
+        return redirect()
+            ->route('admin.classes.index')
             ->with('success', 'Class updated successfully');
     }
 

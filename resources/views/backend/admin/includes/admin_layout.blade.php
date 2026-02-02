@@ -10,14 +10,13 @@
     <meta name="keywords"
         content="nobleui, bootstrap, bootstrap 5, bootstrap5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
 
-    <title>{{ isset($data['page_title']) ? $data['page_title'] : 'Adv-Diary' }}</title>
+    <title>{{ $data['page_title'] ?? 'Adv-Diary' }}</title>
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- End fonts -->
 
     <!-- core:css start -->
     <link rel="stylesheet" href="{{ asset('backend_assets/vendors/core/core.css') }}">
@@ -27,7 +26,7 @@
     <link rel="stylesheet" href="{{ asset('backend_assets/fonts/feather-font/css/iconfont.css') }}">
     <link rel="stylesheet" href="{{ asset('backend_assets/vendors/flag-icon-css/css/flag-icon.min.css') }}">
 
-    <!-- DataTables (LOCAL) -->
+    <!-- DataTables -->
     <link rel="stylesheet" href="{{ asset('backend_assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
 
     <!-- Date picker -->
@@ -36,7 +35,7 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('backend_assets/vendors/select2/select2.min.css') }}">
 
-    <!-- ✅ Global DataTable UI (matches screenshot) -->
+    <!-- ✅ Global DataTable UI Styling -->
     <style>
         .dataTables_wrapper .dataTables_length,
         .dataTables_wrapper .dataTables_filter {
@@ -68,7 +67,7 @@
         }
     </style>
 
-    {{-- Page specific CSS --}}
+    {{-- Page-specific CSS --}}
     @stack('css')
 
     <!-- Layout styles -->
@@ -92,7 +91,7 @@
         </div>
     </div>
 
-    <!-- core:js -->
+    <!-- Core JS -->
     <script src="{{ asset('backend_assets/vendors/core/core.js') }}"></script>
     <script src="{{ asset('backend_assets/vendors/bootstrap-maxlength/bootstrap-maxlength.min.js') }}"></script>
     <script src="{{ asset('backend_assets/js/bootstrap-maxlength.js') }}"></script>
@@ -105,19 +104,19 @@
     <script src="{{ asset('backend_assets/vendors/flatpickr/flatpickr.min.js') }}"></script>
     <script src="{{ asset('backend_assets/js/flatpickr.js') }}"></script>
 
-    <!-- DataTables (LOCAL) -->
+    <!-- DataTables -->
     <script src="{{ asset('backend_assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
     <script src="{{ asset('backend_assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
 
-    <!-- ✅ IMPORTANT: Remove this if it auto-initializes all tables -->
+    <!-- Optional: Disable auto-initialization -->
     {{-- <script src="{{ asset('backend_assets/js/data-table.js') }}"></script> --}}
 
     <!-- Select2 -->
     <script src="{{ asset('backend_assets/vendors/select2/select2.min.js') }}"></script>
     <script src="{{ asset('backend_assets/js/select2.js') }}"></script>
 
-    {{-- Page specific JS --}}
-    @stack('js')
+    {{-- ✅ Page-specific JS (e.g. Chart.js, custom dashboards) --}}
+    @stack('scripts')
 </body>
 
 </html>

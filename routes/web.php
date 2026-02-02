@@ -6,7 +6,6 @@ use App\Http\Controllers\backend\admin\DashboardController;
 use App\Http\Controllers\backend\admin\AdminAuthController;
 use App\Http\Controllers\backend\admin\ProfileController;
 
-
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\AuditorController;
 use App\Http\Controllers\Admin\DuplicateRollController;
@@ -22,12 +21,12 @@ use App\Http\Controllers\Admin\ClassController;
 |--------------------------------------------------------------------------
 */
 
-// ✅ Global login alias route
+// ✅ Global login alias route (so redirect()->route('login') works)
 Route::get('/login', function () {
     return redirect()->route('admin.login');
 })->name('login');
 
-// ✅ Home route (send guest to login, logged-in to dashboard)
+// ✅ Home route
 Route::get('/', function () {
     return auth()->check()
         ? redirect()->route('admin.dashboard')
@@ -44,18 +43,24 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // ✅ Admin Auth
     Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
-    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
     // ✅ Protected Admin Area
     Route::middleware(['admin.auth'])->group(function () {
 
+        // ✅ If someone hits /admin directly
+        Route::get('/', function () {
+            return redirect()->route('admin.dashboard');
+        });
+
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
+        // ✅ Logout should be protected
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
         // ✅ Profile
-     // ✅ Profile
-Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
-Route::post('/profile/update', [ProfileController::class, 'profile_info_update'])->name('profile.info.update');
-Route::post('/profile/password', [ProfileController::class, 'profile_password_update'])->name('profile.password.update');
+        Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
+        Route::post('/profile/update', [ProfileController::class, 'profile_info_update'])->name('profile.info.update');
+        Route::post('/profile/password', [ProfileController::class, 'profile_password_update'])->name('profile.password.update');
 
         // ✅ Resources
         Route::resource('students', StudentController::class)->except(['show']);
@@ -82,7 +87,7 @@ Route::post('/profile/password', [ProfileController::class, 'profile_password_up
         // ✅ Auditor Excel Export
         Route::get('/auditors-export', [AuditorController::class, 'export'])->name('auditors.export');
 
-        // ✅ Placeholder view routes (keep only if you truly use them)
+        // ✅ Placeholder view routes
         Route::view('/sections/add', 'backend.admin.sections.create')->name('sections.add');
         Route::view('/sections/list', 'backend.admin.sections.index')->name('sections.list');
 
