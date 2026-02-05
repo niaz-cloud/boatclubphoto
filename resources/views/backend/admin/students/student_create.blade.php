@@ -52,6 +52,23 @@
                         @enderror
                     </div>
 
+                    {{-- ✅ NEW: Class Dropdown --}}
+                    <div class="col-md-6">
+                        <label class="form-label">Class <span class="text-danger">*</span></label>
+                        <select name="class_id" class="form-select" required>
+                            <option value="">-- Select Class --</option>
+                            @foreach($classes as $class)
+                                <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
+                                    {{ $class->class_name }} {{ $class->section ? '(' . $class->section . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('class_id')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
                 </div>
 
                 <div class="mt-4">

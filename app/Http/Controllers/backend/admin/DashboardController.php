@@ -13,47 +13,38 @@ class DashboardController extends Controller
     {
         $data = [];
 
-        // =============================
-        // Basic page info
-        // =============================
+        // Page info
         $data['page_title']  = 'SMS Admin (SIS)';
         $data['active_menu'] = 'dashboard';
 
-        // =============================
-        // Defaults
-        // =============================
-        $data['total_students'] = 0;
-        $data['total_exams']    = 0;
-        $data['total_results']  = 0;
+        // Default values
+        $data['total_students']       = 0;
+        $data['total_exams']          = 0;
+        $data['total_results']        = 0;
+        $data['total_classes']        = 0;
+        $data['active_classes']       = 0;
 
-        $data['total_classes']  = 0;
-        $data['active_classes'] = 0;
-        $data['recent_classes'] = collect();
-
-        // Chart data
-        $data['students_per_class'] = collect();
+        $data['recent_classes']       = collect();
+        $data['students_per_class']   = collect(); // pie
+        $data['attendance_per_class'] = collect(); // bar
 
         try {
 
-            // =============================
-            // Detect tables
-            // =============================
-            $studentsTable = Schema::hasTable('students') ? 'students' : null;
-            $examsTable    = Schema::hasTable('exams') ? 'exams' : null;
-            $resultsTable  = Schema::hasTable('results') ? 'results' : null;
-
-            // =============================
             // Totals
-            // =============================
-            if ($studentsTable) $data['total_students'] = DB::table($studentsTable)->count();
-            if ($examsTable)    $data['total_exams']    = DB::table($examsTable)->count();
-            if ($resultsTable)  $data['total_results']  = DB::table($resultsTable)->count();
+            if (Schema::hasTable('students')) {
+                $data['total_students'] = DB::table('students')->count();
+            }
 
-            // =============================
-            // Class statistics
-            // =============================
+            if (Schema::hasTable('exams')) {
+                $data['total_exams'] = DB::table('exams')->count();
+            }
+
+            if (Schema::hasTable('results')) {
+                $data['total_results'] = DB::table('results')->count();
+            }
+
+            // Class info
             if (Schema::hasTable('classes')) {
-
                 $data['total_classes']  = ClassModel::count();
                 $data['active_classes'] = ClassModel::where('status', 1)->count();
 
@@ -63,7 +54,7 @@ class DashboardController extends Controller
             }
 
             // =============================
-            // ✅ PIE CHART: Students per class (FIXED)
+            // PIE CHART: Students per class
             // =============================
             if (
                 Schema::hasTable('students') &&
@@ -72,13 +63,43 @@ class DashboardController extends Controller
             ) {
                 $data['students_per_class'] = DB::table('students')
                     ->join('classes', 'students.class_id', '=', 'classes.id')
-                    ->select('classes.class_name', DB::raw('COUNT(students.id) as total'))
+                    ->select(
+                        'classes.class_name',
+                        DB::raw('COUNT(students.id) as total_students')
+                    )
                     ->groupBy('classes.class_name')
-                    ->pluck('total', 'classes.class_name');
+                    ->orderBy('classes.class_name')
+                    ->pluck('total_students', 'classes.class_name');
+            }
+
+            // =============================
+            // BAR CHART: Attendance per class
+            // =============================
+            if (
+                Schema::hasTable('attendance') &&
+                Schema::hasTable('classes') &&
+                Schema::hasColumn('attendance', 'class_id')
+            ) {
+                $query = DB::table('attendance')
+                    ->join('classes', 'attendance.class_id', '=', 'classes.id');
+
+                // If status column exists, count only present students
+                if (Schema::hasColumn('attendance', 'status')) {
+                    $query->where('attendance.status', 'present');
+                }
+
+                $data['attendance_per_class'] = $query
+                    ->select(
+                        'classes.class_name',
+                        DB::raw('COUNT(attendance.id) as total_attendance')
+                    )
+                    ->groupBy('classes.class_name')
+                    ->orderBy('classes.class_name')
+                    ->get();
             }
 
         } catch (\Throwable $e) {
-            // Dashboard must never crash
+            // keep dashboard safe
         }
 
         return view('backend.admin.pages.dashboard', compact('data'));

@@ -135,7 +135,7 @@
 
 @push('css')
 <style>
-    /* Same Restaurant/Operator DataTable look */
+    /*Operator DataTable look */
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter{
         margin-bottom: 14px;

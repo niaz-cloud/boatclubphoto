@@ -142,6 +142,13 @@
                     <span class="link-title">Auditors</span>
                 </a>
             </li>
+            <li class="nav-item">
+            <a href="{{ route('admin.attendance.index') }}" class="nav-link">
+             <i class="feather icon-check-square"></i>
+              <span>Attendance</span>
+                 </a>
+                   </li>
+
 
             <li class="nav-item {{ (($data['active_menu'] ?? '') == 'duplicate_rolls') ? 'active' : '' }}">
                 <a href="{{ route('admin.duplicate-rolls.index') }}" class="nav-link">

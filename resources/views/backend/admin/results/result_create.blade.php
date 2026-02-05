@@ -149,7 +149,7 @@
 </style>
 @endpush
 
-@push('js')
+@push('scripts')
 <script>
     const examSelect = document.getElementById('exam_id');
     const correctInput = document.getElementById('correct_answer');

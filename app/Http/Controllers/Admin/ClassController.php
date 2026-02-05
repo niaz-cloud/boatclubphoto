@@ -15,8 +15,8 @@ class ClassController extends Controller
         $data['active_menu'] = 'classes';
         $data['page_title']  = 'Classes';
 
-        // ✅ DataTable needs full collection (not paginate)
-        $classes = ClassModel::latest()->get();
+        // ✅ Load student counts using relationship (requires ClassModel->students())
+        $classes = ClassModel::withCount('students')->latest()->get();
 
         return view('backend.admin.classes.classes_index', compact('classes', 'data'));
     }
@@ -41,9 +41,9 @@ class ClassController extends Controller
             'status'        => 'nullable|in:0,1',
         ]);
 
-        $validated['class_code'] = trim($validated['class_code']);
-        $validated['status'] = $validated['status'] ?? 1;
-        $validated['created_by'] = Auth::id();
+        $validated['class_code']  = trim($validated['class_code']);
+        $validated['status']      = $validated['status'] ?? 1;
+        $validated['created_by']  = Auth::id();
 
         ClassModel::create($validated);
 
@@ -73,7 +73,7 @@ class ClassController extends Controller
         ]);
 
         $validated['class_code'] = trim($validated['class_code']);
-        $validated['status'] = $validated['status'] ?? $class->status;
+        $validated['status']     = $validated['status'] ?? $class->status;
 
         $class->update($validated);
 
@@ -85,7 +85,6 @@ class ClassController extends Controller
     public function destroy(ClassModel $class)
     {
         $class->delete();
-
         return back()->with('success', 'Class deleted successfully');
     }
 }

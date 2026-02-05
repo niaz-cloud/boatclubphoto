@@ -20,4 +20,22 @@ class ClassModel extends Model
         'status',
         'created_by',
     ];
+
+    /**
+     * Relationship: A class has many students
+     * classes.id -> students.class_id
+     */
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'class_id');
+    }
+
+    /**
+     * Relationship: A class has many attendance records
+     * classes.id -> attendance.class_id
+     */
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class, 'class_id');
+    }
 }

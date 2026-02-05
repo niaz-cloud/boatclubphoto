@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\ClassModel;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
@@ -14,7 +15,8 @@ class StudentController extends Controller
         $data['active_menu'] = 'students';
         $data['page_title']  = 'Student List';
 
-        $students = Student::latest()->get();
+        // ✅ Relationship loaded: student->class
+        $students = Student::with('class')->latest()->get();
 
         return view('backend.admin.students.student_index', compact('data', 'students'));
     }
@@ -25,7 +27,10 @@ class StudentController extends Controller
         $data['active_menu'] = 'students';
         $data['page_title']  = 'Add Student';
 
-        return view('backend.admin.students.student_create', compact('data'));
+        // ✅ for dropdown
+        $classes = ClassModel::orderBy('class_name')->get();
+
+        return view('backend.admin.students.student_create', compact('data', 'classes'));
     }
 
     public function store(Request $request)
@@ -34,6 +39,7 @@ class StudentController extends Controller
             'roll_number' => 'required|string|max:50|unique:students,roll_number',
             'name'        => 'required|string|max:255',
             'phone'       => 'nullable|string|max:20',
+            'class_id'    => 'required|exists:classes,id', // ✅ relation validation
         ]);
 
         $validated['roll_number'] = trim($validated['roll_number']);
@@ -53,7 +59,10 @@ class StudentController extends Controller
 
         $student = Student::findOrFail($id);
 
-        return view('backend.admin.students.student_edit', compact('data', 'student'));
+        // ✅ for dropdown
+        $classes = ClassModel::orderBy('class_name')->get();
+
+        return view('backend.admin.students.student_edit', compact('data', 'student', 'classes'));
     }
 
     public function update(Request $request, $id)
@@ -64,6 +73,7 @@ class StudentController extends Controller
             'roll_number' => 'required|string|max:50|unique:students,roll_number,' . $student->id,
             'name'        => 'required|string|max:255',
             'phone'       => 'nullable|string|max:20',
+            'class_id'    => 'required|exists:classes,id', // ✅ relation validation
         ]);
 
         $validated['roll_number'] = trim($validated['roll_number']);
@@ -78,7 +88,6 @@ class StudentController extends Controller
     public function destroy($id)
     {
         Student::findOrFail($id)->delete();
-
         return back()->with('success', 'Student deleted successfully');
     }
 }

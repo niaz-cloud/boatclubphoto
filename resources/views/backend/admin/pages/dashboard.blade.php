@@ -13,7 +13,6 @@
 
     {{-- TOP STATS --}}
     <div class="row">
-
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card text-white" style="background:#2563eb;">
                 <div class="card-body">
@@ -50,7 +49,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     {{-- SECOND ROW --}}
@@ -83,9 +81,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted">
-                                        No data found
-                                    </td>
+                                    <td colspan="3" class="text-center text-muted">No data found</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -100,66 +96,92 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-title">Students Per Class</h6>
-                   <canvas id="studentsPieChart" height="250" style="max-height:250px;"></canvas>
-
+                    <div style="height:300px;">
+                        <canvas id="studentsPieChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
 
+    {{-- THIRD ROW --}}
+    <div class="row mt-3">
+        <div class="col-md-6 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Attendance Per Class</h6>
+                    <div style="height:320px;">
+                        <canvas id="attendanceBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
+
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const canvas = document.getElementById('studentsPieChart');
 
-    if (!canvas) {
-        console.warn('studentsPieChart canvas not found');
-        return;
-    }
+    // PIE CHART
+    const pieCanvas = document.getElementById('studentsPieChart');
+    if (pieCanvas) {
+        const labels = {!! json_encode($data['students_per_class']->keys()) !!};
+        const values = {!! json_encode($data['students_per_class']->values()) !!};
 
-    const labels = {!! json_encode($data['students_per_class']->keys()) !!};
-    const values = {!! json_encode($data['students_per_class']->values()) !!};
-
-    console.log("Labels:", labels);
-    console.log("Values:", values);
-
-    if (labels.length === 0 || values.length === 0) {
-        console.warn('No data available for pie chart');
-        return;
-    }
-
-    const ctx = canvas.getContext('2d');
-
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: [
-                    '#2563eb', '#dc2626', '#9333ea',
-                    '#16a34a', '#facc15', '#3b82f6',
-                    '#ec4899', '#22c55e', '#a855f7'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
+        new Chart(pieCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        '#2563eb','#dc2626','#9333ea',
+                        '#16a34a','#facc15','#3b82f6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
             }
-        }
-    });
+        });
+    }
+
+    // BAR CHART
+    const barCanvas = document.getElementById('attendanceBarChart');
+    if (barCanvas) {
+        const data = @json($data['attendance_per_class']);
+
+        const labels = data.map(x => x.class_name);
+        const values = data.map(x => x.total_attendance);
+
+        new Chart(barCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
 });
 </script>
 @endpush
