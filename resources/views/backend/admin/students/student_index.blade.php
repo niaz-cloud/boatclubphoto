@@ -3,14 +3,14 @@
 @section('content')
 <div class="page-content">
 
-    {{-- Top Right Buttons (match Auditor style) --}}
+    {{-- Top Right Button --}}
     <div class="d-flex justify-content-end align-items-center gap-2 mb-3 mt-4">
         <a href="{{ route('admin.students.create') }}" class="btn btn-success btn-sm px-3">
             + Add Student
         </a>
     </div>
 
-    {{-- Flash --}}
+    {{-- Flash Message --}}
     @if(session('success'))
         <div class="alert alert-success py-2 mb-2">
             {{ session('success') }}
@@ -30,40 +30,54 @@
                             <th style="width:160px;">ROLL</th>
                             <th>NAME</th>
                             <th style="width:160px;">PHONE</th>
-                            <th style="width:110px;">ACTION</th>
+                            <th style="width:140px;" class="text-center">ACTION</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         @forelse($students as $student)
                             <tr>
-                                {{-- ✅ SL auto-filled by DataTable --}}
+                                {{-- SL (auto-generated) --}}
                                 <td></td>
 
                                 <td class="fw-semibold">{{ $student->roll_number }}</td>
                                 <td>{{ $student->name }}</td>
                                 <td>{{ $student->phone ?? '-' }}</td>
 
-                                <td>
-                                    <a href="{{ route('admin.students.edit', $student->id) }}"
-                                       class="restaurant-action restaurant-edit"
-                                       title="Edit">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
+                                {{-- ACTION --}}
+                                <td class="text-center">
+                                    <div class="action-group">
 
-                                    <form action="{{ route('admin.students.destroy', $student->id) }}"
-                                          method="POST"
-                                          class="d-inline"
-                                          onsubmit="return confirm('Delete this student?')">
-                                        @csrf
-                                        @method('DELETE')
+                                        {{-- View --}}
+                                        <a href="{{ route('admin.students.show', $student->id) }}"
+                                           class="action-btn view"
+                                           title="View">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
 
-                                        <button type="submit"
-                                                class="restaurant-action restaurant-delete"
-                                                title="Delete">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
+                                        {{-- Edit --}}
+                                        <a href="{{ route('admin.students.edit', $student->id) }}"
+                                           class="action-btn edit"
+                                           title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        {{-- Delete --}}
+                                        <form action="{{ route('admin.students.destroy', $student->id) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this student?')">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit"
+                                                    class="action-btn delete"
+                                                    title="Delete">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -83,83 +97,87 @@
 </div>
 @endsection
 
+{{-- ================= STYLES ================= --}}
 @push('css')
 <style>
-    /* Keep controls tight like Restaurant */
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter{
-        margin-bottom: 10px !important;
-    }
+/* Datatable spacing */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter{
+    margin-bottom: 10px !important;
+}
 
-    /* Search box */
-    .dataTables_wrapper .dataTables_filter input{
-        width: 220px !important;
-        height: 34px !important;
-        padding: 0 10px !important;
-        font-size: 14px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 4px !important;
-        outline: none !important;
-        box-shadow: none !important;
-    }
+.dataTables_wrapper .dataTables_filter input{
+    width: 220px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 14px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 4px !important;
+}
 
-    /* Show entries dropdown */
-    .dataTables_wrapper .dataTables_length select{
-        min-width: 72px !important;
-        height: 34px !important;
-        padding: 0 10px !important;
-        font-size: 14px !important;
-        line-height: 34px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 4px !important;
-        background: #fff !important;
-        outline: none !important;
-        box-shadow: none !important;
-        appearance: auto !important;
-    }
+.dataTables_wrapper .dataTables_length select{
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 14px !important;
+}
 
-    /* Table header */
-    table.restaurant-dt thead th{
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        color: #5b6ea6 !important;
-        text-transform: uppercase !important;
-        border-bottom: 1px solid #e5e7eb !important;
-        padding: 10px 10px !important;
-        white-space: nowrap !important;
-        background: transparent !important;
-    }
+/* Table */
+table.restaurant-dt thead th{
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #5b6ea6 !important;
+    text-transform: uppercase !important;
+}
 
-    /* Table body */
-    table.restaurant-dt tbody td{
-        border-bottom: 1px solid #e5e7eb !important;
-        padding: 12px 10px !important;
-        font-size: 14px !important;
-        vertical-align: middle !important;
-    }
+table.restaurant-dt tbody td{
+    padding: 12px 10px !important;
+    font-size: 14px !important;
+    vertical-align: middle !important;
+}
 
-    /* Action buttons */
-    .restaurant-action{
-        width: 32px !important;
-        height: 28px !important;
-        border-radius: 4px !important;
-        border: none !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-decoration: none !important;
-        cursor: pointer !important;
-        margin-right: 6px !important;
-    }
-    .restaurant-edit{ background: #16a34a !important; }
-    .restaurant-delete{ background: #f43f5e !important; }
-    .restaurant-action i{ color: #fff !important; font-size: 13px !important; }
+/* Action buttons */
+.action-group{
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
 
-    /* Remove bottom border */
-    table.dataTable.no-footer{ border-bottom: 0 !important; }
+.action-btn{
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.action-btn i{
+    font-size: 13px;
+    color: #fff;
+}
+
+/* Colors */
+.action-btn.view{ background:#2563eb; }
+.action-btn.edit{ background:#16a34a; }
+.action-btn.delete{ background:#ef4444; }
+
+/* Hover */
+.action-btn:hover{
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+table.dataTable.no-footer{
+    border-bottom: 0 !important;
+}
 </style>
 @endpush
 
+{{-- ================= SCRIPTS ================= --}}
 @push('js')
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -168,9 +186,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const table = $('#studentsTable').DataTable({
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
-            order: [[1, 'asc']], // roll
+            order: [[1, 'asc']],
             columnDefs: [
-                { orderable: false, targets: [0, 4] } // SL + action
+                { orderable: false, targets: [0, 4] }
             ],
             language: {
                 search: "",
@@ -178,12 +196,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // ✅ Auto SL numbering (works with paging/search/order)
+        // Auto SL numbering
         table.on('order.dt search.dt draw.dt', function () {
             let i = 1;
-            table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function () {
-                this.data(i++);
-            });
+            table.cells(null, 0, { search: 'applied', order: 'applied' })
+                .every(function () {
+                    this.data(i++);
+                });
         }).draw();
     }
 });

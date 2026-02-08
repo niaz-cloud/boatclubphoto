@@ -58,8 +58,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Dashboard & Logout
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-        // Changed to GET if your logout isn't strictly using a form/CSRF, 
-        // but POST is safer for state-changing actions.
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
         // Profile Management
@@ -70,7 +68,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // --- Core Resources (CRUD) ---
-        Route::resource('students', StudentController::class)->except(['show']);
+        Route::resource('students', StudentController::class);
         Route::resource('classes', ClassController::class)->except(['show']);
         Route::resource('auditors', AuditorController::class)->except(['show']);
         Route::resource('exams', ExamController::class)->except(['show']);
@@ -94,9 +92,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // --- Attendance Reports ---
         Route::controller(AttendanceReportController::class)->group(function () {
             Route::get('attendance-report', 'index')->name('attendance.report');
-           Route::get('attendance-report/csv', [AttendanceReportController::class, 'exportCsv'])
-               ->name('attendance.report.csv');
-
+            Route::get('attendance-report/csv', 'exportCsv')->name('attendance.report.csv');
             Route::get('attendance-report/pdf', 'exportPdf')->name('attendance.report.pdf');
         });
 

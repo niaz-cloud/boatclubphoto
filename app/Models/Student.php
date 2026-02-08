@@ -9,21 +9,20 @@ class Student extends Model
 {
     use HasFactory;
 
-    // If your table name is "students" (default), this is optional.
-    // protected $table = 'students';
-
-    // These fields can be saved/updated using Student::create() / ->update()
+    /**
+     * Mass assignable fields
+     */
     protected $fillable = [
         'roll_number',
         'name',
         'phone',
         'class_id',
-        'attendance_count', // keep only if this column exists in your students table
+        'attendance_count', // keep ONLY if this column exists in DB
     ];
 
     /**
-     * Relationship: A student belongs to one class.
-     * students.class_id -> classes.id
+     * A student belongs to one class
+     * students.class_id → classes.id
      */
     public function class()
     {
@@ -31,11 +30,24 @@ class Student extends Model
     }
 
     /**
-     * Relationship: A student can have many attendance records.
-     * attendance.student_id -> students.id
+     * A student can have many attendance records
+     * attendance.student_id → students.id
      */
     public function attendance()
     {
         return $this->hasMany(Attendance::class, 'student_id');
     }
+
+    /**
+     * ✅ A student can have many results
+     * results.student_id → students.id
+     */
+    public function results()
+{
+    return $this->hasMany(
+        Result::class,
+        'roll_number',     // FK on results table
+        'roll_number'      // PK on students table
+    );
+}
 }
