@@ -6,7 +6,8 @@
     <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
         <div>
             <h5 class="mb-0 fw-semibold">Mark Attendance</h5>
-            <small class="text-muted">Select class & date, then mark Present/Absent</small>
+          <small class="text-muted">Select class & date, then mark Present / Late / Absent</small>
+
         </div>
 
         <a href="{{ route('admin.attendance.index') }}" class="btn btn-secondary btn-sm px-3">
@@ -79,6 +80,7 @@
                                         <td>
                                             <select name="status[{{ $s->id }}]" class="form-select form-select-sm status-select">
                                                 <option value="present" {{ $st === 'present' ? 'selected' : '' }}>Present</option>
+                                                <option value="late"    {{ $st === 'late' ? 'selected' : '' }}>Late</option>
                                                 <option value="absent"  {{ $st === 'absent' ? 'selected' : '' }}>Absent</option>
                                             </select>
                                         </td>

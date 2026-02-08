@@ -56,16 +56,30 @@
                     <tbody>
                         @forelse($rows as $row)
                             <tr>
-                                <td>{{ $row->date }}</td>
+                            <td>
+                        {{ \Carbon\Carbon::parse($row->created_at)->format('d M Y, h:i A') }}
+                             </td>
+
+
                                 <td>{{ $row->class->class_name ?? '-' }}</td>
                                 <td>
                                     {{ $row->student->roll_number ?? '' }} - {{ $row->student->name ?? '-' }}
                                 </td>
-                                <td>
-                                    <span class="badge {{ $row->status === 'present' ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ ucfirst($row->status) }}
-                                    </span>
-                                </td>
+                               <td>
+    @php
+        $badgeClass = match($row->status) {
+            'present' => 'bg-success',
+            'late'    => 'bg-warning',
+            'absent'  => 'bg-danger',
+            default   => 'bg-secondary',
+        };
+    @endphp
+
+    <span class="badge {{ $badgeClass }}">
+        {{ ucfirst($row->status) }}
+    </span>
+</td>
+
                                 <td>
                                     <a href="{{ route('admin.attendance.edit', $row->id) }}" class="btn btn-warning btn-sm">
                                         Edit

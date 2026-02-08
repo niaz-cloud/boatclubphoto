@@ -121,7 +121,7 @@ class AttendanceController extends Controller
     public function update(Request $request, Attendance $attendance)
     {
         $validated = $request->validate([
-            'status' => 'required|in:present,absent',
+            'status' => 'required|in:present,absent,late',
         ]);
 
         $attendance->update($validated);
