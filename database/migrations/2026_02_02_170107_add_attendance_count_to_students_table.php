@@ -9,17 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up()
-{
-    Schema::table('students', function (Blueprint $table) {
-        $table->integer('attendance_count')->default(0)->after('class_id');
-    });
-}
+    public function up()
+    {
+        Schema::table('students', function (Blueprint $table) {
+            $table->integer('attendance_count')->default(0);
+        });
+    }
 
-public function down()
-{
-    Schema::table('students', function (Blueprint $table) {
-        $table->dropColumn('attendance_count');
-    });
-}
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        Schema::table('students', function (Blueprint $table) {
+            $table->dropColumn('attendance_count');
+        });
+    }
 };
