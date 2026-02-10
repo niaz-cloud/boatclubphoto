@@ -9,21 +9,20 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminAuthenticationMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if the user is authenticated
+        // 1️⃣ User must be logged in
         if (!Auth::check()) {
             return redirect()->route('admin.login')
                 ->with('error', 'Please login first.');
         }
 
+        // 2️⃣ Only allow super_admin or admin
+        if (!in_array(Auth::user()->role, ['super_admin', 'admin'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // 3️⃣ Access granted
         return $next($request);
     }
 }

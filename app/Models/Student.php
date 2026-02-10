@@ -12,13 +12,14 @@ class Student extends Model
     /**
      * Mass assignable fields
      */
-    protected $fillable = [
-        'roll_number',
-        'name',
-        'phone',
-        'class_id',
-        'attendance_count', // keep ONLY if this column exists in DB
-    ];
+   protected $fillable = [
+    'user_id',          // 🔥 THIS WAS MISSING
+    'roll_number',
+    'name',
+    'phone',
+    'class_id',
+    'attendance_count'
+];
 
     /**
      * A student belongs to one class
