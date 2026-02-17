@@ -11,6 +11,7 @@ class Result extends Model
 
     protected $fillable = [
         'exam_id',
+        'student_id',      // ✅ CRITICAL FIX
         'roll_number',
         'correct_answer',
         'wrong_answer',
@@ -30,14 +31,9 @@ class Result extends Model
 
     /**
      * A result belongs to a student
-     * results.roll_number → students.roll_number
      */
     public function student()
     {
-        return $this->belongsTo(
-            Student::class,
-            'roll_number',     // FK on results table
-            'roll_number'      // PK on students table
-        );
+        return $this->belongsTo(Student::class, 'student_id'); // ✅ FIXED
     }
 }

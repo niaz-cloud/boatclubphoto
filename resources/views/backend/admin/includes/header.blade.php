@@ -6,6 +6,7 @@
     <div class="navbar-content">
         <ul class="navbar-nav">
 
+            {{-- Profile Dropdown --}}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button"
                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -20,7 +21,9 @@
 
                 </a>
 
-                <div class="dropdown-menu p-0" aria-labelledby="profileDropdown">
+                <div class="dropdown-menu p-0 dropdown-menu-end" aria-labelledby="profileDropdown">
+
+                    {{-- User Info --}}
                     <div class="d-flex flex-column align-items-center border-bottom px-5 py-3">
                         <div class="mb-3">
                             @if (Auth::user()->photo)
@@ -36,34 +39,47 @@
                             <p class="tx-16 fw-bolder mb-0">
                                 {{ Auth::user()->name }}
                             </p>
-                            <p class="tx-12 text-muted mb-0">
+                            <p class="tx-12 text-muted mb-1">
                                 {{ Auth::user()->email }}
                             </p>
+
+                            {{-- Role Badge --}}
+                            <span class="badge bg-primary text-capitalize">
+                                {{ Auth::user()->role }}
+                            </span>
                         </div>
                     </div>
 
-                   <ul class="list-unstyled p-1">
-    {{-- Profile --}}
-    <li class="dropdown-item py-2">
-        <a href="{{ route('admin.profile') }}" class="text-body ms-0 d-flex align-items-center">
-            <i class="me-2 icon-md" data-feather="user"></i>
-            <span>Profile</span>
-        </a>
-    </li>
+                    {{-- Menu --}}
+                    <ul class="list-unstyled p-1">
 
-    {{-- Logout (must be POST) --}}
-    <li class="dropdown-item py-2">
-        <form method="POST" action="{{ route('admin.logout') }}">
-            @csrf
-            <button type="submit"
-                class="text-body ms-0 d-flex align-items-center w-100"
-                style="background:none;border:0;padding:0;">
-                <i class="me-2 icon-md" data-feather="log-out"></i>
-                <span>Log Out</span>
-            </button>
-        </form>
-    </li>
-</ul>
+                        {{-- Profile (Role-Based) --}}
+                        <li class="dropdown-item py-2">
+                            <a href="{{ auth()->user()->role === 'student'
+                                        ? route('student.profile')
+                                        : route('admin.profile') }}"
+                               class="text-body ms-0 d-flex align-items-center">
+
+                                <i class="me-2 icon-md" data-feather="user"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+
+                        {{-- Logout (Global Route) --}}
+                        <li class="dropdown-item py-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="text-body ms-0 d-flex align-items-center w-100"
+                                    style="background:none;border:0;padding:0;">
+
+                                    <i class="me-2 icon-md" data-feather="log-out"></i>
+                                    <span>Log Out</span>
+                                </button>
+                            </form>
+                        </li>
+
+                    </ul>
 
                 </div>
             </li>

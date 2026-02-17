@@ -16,30 +16,42 @@ class AdminAuthController extends Controller
     /**
      * Updated login method
      */
-   public function login(Request $request)
+  public function login(Request $request)
 {
     $credentials = $request->validate([
         'email'      => ['required', 'email'],
         'password'   => ['required', 'string'],
-        'not_robot'  => ['accepted'], // ✅ match login blade checkbox
+        'not_robot'  => ['accepted'],
     ]);
 
-    // remove checkbox from credentials before Auth::attempt
     unset($credentials['not_robot']);
 
     if (Auth::attempt($credentials)) {
+
         $request->session()->regenerate();
 
-        return redirect()
-            ->route('admin.dashboard')
-            ->with('success', 'Login successful');
+        $user = Auth::user();
+
+        // 🎯 ROLE-BASED REDIRECT
+        return match ($user->role) {
+
+            'super_admin', 'admin' =>
+                redirect()->route('admin.dashboard')
+                    ->with('success', 'Login successful'),
+
+            'student' =>
+                redirect()->route('student.dashboard')
+                    ->with('success', 'Welcome Student'),
+
+            default =>
+                abort(403)
+        };
     }
 
     return back()
         ->withInput($request->only('email'))
         ->with('error', 'Invalid email or password');
 }
-
 
     public function logout(Request $request)
     {

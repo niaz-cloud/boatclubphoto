@@ -51,4 +51,9 @@ class Student extends Model
         'roll_number'      // PK on students table
     );
 }
+public function user()
+{
+    return $this->belongsTo(User::class);
+}
+
 }

@@ -7,6 +7,7 @@ use App\Models\Result;
 use App\Models\Exam;
 use App\Models\DuplicateRoll;
 use App\Models\OmrError;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
 class ResultController extends Controller
@@ -17,7 +18,9 @@ class ResultController extends Controller
         $data['active_menu'] = 'results';
         $data['page_title']  = 'Results';
 
-        $results = Result::with('exam')->latest()->paginate(10);
+        $results = Result::with(['exam', 'student'])
+            ->latest()
+            ->paginate(10);
 
         $duplicateMap = DuplicateRoll::select('exam_id', 'roll_number')
             ->get()
@@ -48,13 +51,12 @@ class ResultController extends Controller
             'wrong_answer'    => 'required|integer|min:0',
         ]);
 
-        // normalize
         $validated['roll_number'] = trim($validated['roll_number']);
 
         $examId = $validated['exam_id'];
         $roll   = $validated['roll_number'];
 
-        // 🚫 Block duplicate roll (and log in omr_errors)
+        // 🚫 Duplicate roll check
         if (DuplicateRoll::where('exam_id', $examId)
             ->where('roll_number', $roll)
             ->exists()) {
@@ -70,20 +72,19 @@ class ResultController extends Controller
             return back()->withInput()->with('error', 'Duplicate roll number for this exam.');
         }
 
-        // 🚫 Prevent double result (and log in omr_errors)
+        // 🚫 Prevent double result
         if (Result::where('exam_id', $examId)
             ->where('roll_number', $roll)
             ->exists()) {
 
-            OmrError::create([
-                'exam_id'     => $examId,
-                'file_path'   => 'manual_entry',
-                'roll_number' => $roll,
-                'set_number'  => null,
-                'message'     => 'Result already exists for this roll.',
-            ]);
-
             return back()->withInput()->with('error', 'Result already exists for this roll.');
+        }
+
+        // ✅ Find student via roll number
+        $student = Student::where('roll_number', $roll)->first();
+
+        if (!$student) {
+            return back()->withInput()->with('error', 'Student not found with this roll number.');
         }
 
         $exam = Exam::findOrFail($examId);
@@ -97,8 +98,10 @@ class ResultController extends Controller
 
         $status = $obtained >= $exam->pass_mark ? 'pass' : 'fail';
 
+        // ✅ Save Result with student_id
         Result::create([
             'exam_id'         => $examId,
+            'student_id'      => $student->id,  // ✅ CRITICAL FIX
             'roll_number'     => $roll,
             'correct_answer'  => $validated['correct_answer'],
             'wrong_answer'    => $validated['wrong_answer'],
@@ -116,7 +119,23 @@ class ResultController extends Controller
     public function destroy(Result $result)
     {
         $result->delete();
-
         return back()->with('success', 'Result deleted.');
     }
+
+    // 🎓 Student Results
+   public function studentResults()
+{
+    $student = auth()->user()->student;
+
+    if (!$student) {
+        abort(404, 'Student record not found');
+    }
+
+    $results = Result::where('student_id', $student->id) // ✅ FIXED
+        ->with('exam')
+        ->latest()
+        ->get();
+
+    return view('backend.student.results', compact('results'));
+}
 }

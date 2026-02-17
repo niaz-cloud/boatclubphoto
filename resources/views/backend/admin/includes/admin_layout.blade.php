@@ -80,7 +80,12 @@
     <script src="{{ asset('assets/js/loader.js') }}"></script>
 
     <div class="main-wrapper">
-        @include('backend.admin.includes.sidebar')
+       @if(auth()->user()->role === 'student')
+    @include('backend.student.includes.student_sidebar')
+       @else
+    @include('backend.admin.includes.sidebar')
+       @endif
+
 
         <div class="page-wrapper">
             @include('backend.admin.includes.header')

@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\AdminManagementController;
 
 /*
 |--------------------------------------------------------------------------
-| Public & Redirect Routes
+| Public & Global Routes
 |--------------------------------------------------------------------------
 */
 
@@ -31,16 +31,28 @@ Route::get('/login', function () {
     return redirect()->route('admin.login');
 })->name('login');
 
-// Root Home route
+// ✅ GLOBAL LOGOUT
+Route::post('/logout', [AdminAuthController::class, 'logout'])
+    ->name('logout');
+
+// Root Home route (SMART ROLE REDIRECT)
 Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('admin.login');
+
+    if (!auth()->check()) {
+        return redirect()->route('admin.login');
+    }
+
+    return match (auth()->user()->role) {
+        'super_admin', 'admin' => redirect()->route('admin.dashboard'),
+        'student' => redirect()->route('student.dashboard'),
+        default => abort(403)
+    };
 });
+
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes Group
+| Admin Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -48,22 +60,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // ============================
     // Admin Authentication
     // ============================
-    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])
+        ->name('login');
+
+    Route::post('/login', [AdminAuthController::class, 'login'])
+        ->middleware('throttle:admin-login')   // 🔐 RATE LIMITER ADDED
+        ->name('login.submit');
 
     // ============================
     // Protected Admin Area
     // ============================
     Route::middleware(['admin.auth'])->group(function () {
 
-        // Redirect /admin to dashboard
         Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
 
-        // Dashboard & Logout
-        Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+        // Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])
+            ->name('dashboard');
 
         // ============================
         // Profile Management
@@ -90,7 +105,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // ============================
-        // Core Resources (CRUD)
+        // Core Resources
         // ============================
         Route::resource('students', StudentController::class);
         Route::resource('classes', ClassController::class)->except(['show']);
@@ -143,7 +158,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('auditors.export');
 
         // ============================
-        // Placeholder / Static Views
+        // Static Views
         // ============================
         Route::view('/sections/add', 'backend.admin.sections.create')->name('sections.add');
         Route::view('/sections/list', 'backend.admin.sections.index')->name('sections.list');
@@ -153,3 +168,36 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     });
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| 🎓 Student Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('student')
+    ->name('student.')
+    ->middleware(['auth', 'role:student'])
+    ->group(function () {
+
+        Route::get('/dashboard', function () {
+            return view('backend.student.Student_dashboard');
+        })->name('dashboard');
+
+        Route::get('/results', [ResultController::class, 'studentResults'])
+            ->name('results');
+
+        Route::get('/attendance', [AttendanceController::class, 'studentAttendance'])
+            ->name('attendance');
+
+        Route::get('/profile', [ProfileController::class, 'studentProfile'])
+            ->name('profile');
+
+        Route::post('/profile/update', [ProfileController::class, 'studentProfileUpdate'])
+            ->name('profile.update');
+
+        Route::post('/password-update',
+            [StudentController::class, 'updatePassword']
+        )->name('password.update');
+
+    });

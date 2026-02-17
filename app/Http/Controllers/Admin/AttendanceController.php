@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
-    // ✅ Attendance list (filter by class/date)
+    /**
+     * ✅ Attendance List (Filter by class/date)
+     */
     public function index(Request $request)
     {
         $data = [];
@@ -39,7 +41,9 @@ class AttendanceController extends Controller
         ));
     }
 
-    // ✅ Mark attendance (bulk for a class + date)
+    /**
+     * ✅ Mark Attendance (Bulk for class/date)
+     */
     public function create(Request $request)
     {
         $data = [];
@@ -59,7 +63,7 @@ class AttendanceController extends Controller
                 ->orderBy('roll_number')
                 ->get();
 
-            // existing attendance for that class/date: [student_id => status]
+            // Existing attendance map → [student_id => status]
             $existing = Attendance::where('class_id', $classId)
                 ->whereDate('date', $date)
                 ->pluck('status', 'student_id');
@@ -70,45 +74,80 @@ class AttendanceController extends Controller
         ));
     }
 
-    // ✅ Store attendance (UPSERT safe; no duplicates)
+    /**
+     * ✅ Store Attendance (Duplicate-safe UPSERT)
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'class_id' => 'required|exists:classes,id',
             'date'     => 'required|date',
-            'status'   => 'array', // status[student_id] => present/absent
+            'status'   => 'array',
+            'status.*' => 'in:present,absent,late',
         ]);
 
         $classId = (int) $validated['class_id'];
         $date    = $validated['date'];
 
-        // students of this class
-        $students = Student::where('class_id', $classId)->get();
+        $students = Student::where('class_id', $classId)
+            ->select('id')
+            ->get();
 
         DB::transaction(function () use ($students, $classId, $date, $request) {
             foreach ($students as $student) {
+
                 $status = $request->input("status.{$student->id}", 'absent');
 
-                // ✅ updateOrCreate: matches UNIQUE(student_id, date)
                 Attendance::updateOrCreate(
                     [
                         'student_id' => $student->id,
                         'date'       => $date,
                     ],
                     [
-                        'class_id'   => $classId,
-                        'status'     => $status,
+                        'class_id' => $classId,
+                        'status'   => $status,
                     ]
                 );
             }
         });
 
         return redirect()
-            ->route('admin.attendance.index', ['date' => $date, 'class_id' => $classId])
+            ->route('admin.attendance.index', [
+                'date'     => $date,
+                'class_id' => $classId
+            ])
             ->with('success', 'Attendance saved successfully.');
     }
 
-    // ✅ Optional: edit a single row
+    /**
+     * 🎓 Student Attendance View
+     */
+  public function studentAttendance()
+{
+    if (auth()->user()->role !== 'student') {
+        abort(403);
+    }
+
+    $user = auth()->user();
+
+    // ✅ Find student linked to this user
+    $student = Student::where('user_id', $user->id)->first();
+
+    if (!$student) {
+        abort(404, 'Student record not found');
+    }
+
+    // ✅ Use STUDENT ID (not USER ID)
+    $attendance = Attendance::where('student_id', $student->id)
+        ->orderBy('date', 'desc')
+        ->get();
+
+    return view('backend.student.attendance', compact('attendance'));
+}
+
+    /**
+     * ✅ Edit Single Attendance Row
+     */
     public function edit(Attendance $attendance)
     {
         $data = [];
@@ -118,6 +157,9 @@ class AttendanceController extends Controller
         return view('backend.admin.attendance.attendance_edit', compact('data', 'attendance'));
     }
 
+    /**
+     * ✅ Update Single Attendance Row
+     */
     public function update(Request $request, Attendance $attendance)
     {
         $validated = $request->validate([
@@ -127,10 +169,16 @@ class AttendanceController extends Controller
         $attendance->update($validated);
 
         return redirect()
-            ->route('admin.attendance.index', ['date' => $attendance->date, 'class_id' => $attendance->class_id])
+            ->route('admin.attendance.index', [
+                'date'     => $attendance->date,
+                'class_id' => $attendance->class_id
+            ])
             ->with('success', 'Attendance updated successfully.');
     }
 
+    /**
+     * ✅ Delete Attendance Row
+     */
     public function destroy(Attendance $attendance)
     {
         $date    = $attendance->date;
@@ -139,7 +187,10 @@ class AttendanceController extends Controller
         $attendance->delete();
 
         return redirect()
-            ->route('admin.attendance.index', ['date' => $date, 'class_id' => $classId])
+            ->route('admin.attendance.index', [
+                'date'     => $date,
+                'class_id' => $classId
+            ])
             ->with('success', 'Attendance deleted successfully.');
     }
 }

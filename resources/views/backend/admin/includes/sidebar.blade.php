@@ -61,6 +61,35 @@
                     </div>
                 </li>
             @endif
+             {{-- ================= ATTENDANCE ================= --}}
+<li class="nav-item has-sub {{ (($data['active_menu'] ?? '') === 'attendance') ? 'active' : '' }}">
+    <a class="nav-link d-flex align-items-center"
+       data-bs-toggle="collapse"
+       href="#attendanceMenu"
+       role="button"
+       aria-expanded="{{ (($data['active_menu'] ?? '') === 'attendance') ? 'true' : 'false' }}"
+       aria-controls="attendanceMenu">
+
+        <i class="fa-solid fa-user-check"></i>
+        <span class="link-title ms-2">Attendance</span>
+        <i class="fa-solid fa-chevron-down ms-auto"></i>
+    </a>
+
+    <div @class(['collapse', 'show' => (($data['active_menu'] ?? '') === 'attendance')]) id="attendanceMenu">
+        <ul class="nav sub-menu">
+            <li class="nav-item">
+                <a href="{{ route('admin.attendance.create') }}" class="nav-link">
+                    Mark Attendance
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.attendance.index') }}" class="nav-link">
+                    Attendance List
+                </a>
+            </li>
+        </ul>
+    </div>
+</li>
 
             {{-- ================= STUDENT MANAGEMENT ================= --}}
             <li class="nav-item nav-category">Student Management</li>
