@@ -10,21 +10,21 @@ class ExamController extends Controller
 {
     public function index()
     {
+        $data = [];
         $data['active_menu'] = 'exams';
         $data['page_title']  = 'Exams';
 
         $exams = Exam::latest()->get();
 
-        // ✅ changed to exam_index
         return view('backend.admin.exams.exam_index', compact('data', 'exams'));
     }
 
     public function create()
     {
+        $data = [];
         $data['active_menu'] = 'exams';
         $data['page_title']  = 'Add Exam';
 
-        // ✅ changed to exam_create
         return view('backend.admin.exams.exam_create', compact('data'));
     }
 
@@ -54,12 +54,12 @@ class ExamController extends Controller
 
     public function edit($id)
     {
+        $data = [];
         $data['active_menu'] = 'exams';
         $data['page_title']  = 'Edit Exam';
 
         $exam = Exam::findOrFail($id);
 
-        // ✅ already correct (exam_edit)
         return view('backend.admin.exams.exam_edit', compact('data', 'exam'));
     }
 

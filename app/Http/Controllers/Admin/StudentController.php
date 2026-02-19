@@ -18,25 +18,36 @@ class StudentController extends Controller
     // 👨‍💼 ADMIN PANEL LOGIC
     // =========================================================
 
-    public function index()
-    {
-        $data['active_menu'] = 'students';
-        $data['page_title']  = 'Student List';
-
-        $students = Student::with('class')->latest()->get();
-
-        return view('backend.admin.students.student_index', compact('data', 'students'));
+  public function index()
+{
+    // 🛡 Permission Check
+    if (!auth()->user()->can('view student')) {
+        abort(403, 'Unauthorized');
     }
+
+    $data['active_menu'] = 'students';
+    $data['page_title']  = 'Student List';
+
+    $students = Student::with('class')->latest()->get();
+
+    return view('backend.admin.students.student_index', compact('data', 'students'));
+}
 
     public function create()
-    {
-        $data['active_menu'] = 'students';
-        $data['page_title']  = 'Add Student';
-
-        $classes = ClassModel::orderBy('class_name')->get();
-
-        return view('backend.admin.students.student_create', compact('data', 'classes'));
+{
+    // 🛡 Permission Check
+    if (!auth()->user()->can('create student')) {
+        abort(403, 'Unauthorized');
     }
+
+    $data['active_menu'] = 'students';
+    $data['page_title']  = 'Add Student';
+
+    $classes = ClassModel::orderBy('class_name')->get();
+
+    return view('backend.admin.students.student_create', compact('data', 'classes'));
+}
+
 
     /**
      * ✅ STORE STUDENT (USER + STUDENT)

@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AttendanceReportController;
 use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\PaymentController; // ✅ ADDED
 
 /*
 |--------------------------------------------------------------------------
@@ -27,15 +29,12 @@ use App\Http\Controllers\Admin\AdminManagementController;
 */
 
 // Global login alias
-Route::get('/login', function () {
-    return redirect()->route('admin.login');
-})->name('login');
+Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 
-// ✅ GLOBAL LOGOUT
-Route::post('/logout', [AdminAuthController::class, 'logout'])
-    ->name('logout');
+// Global logout
+Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
-// Root Home route (SMART ROLE REDIRECT)
+// Root Home route (Smart redirect)
 Route::get('/', function () {
 
     if (!auth()->check()) {
@@ -49,7 +48,6 @@ Route::get('/', function () {
     };
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
@@ -57,118 +55,137 @@ Route::get('/', function () {
 */
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // ============================
-    // Admin Authentication
-    // ============================
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/login', [AdminAuthController::class, 'showLogin'])
         ->name('login');
 
     Route::post('/login', [AdminAuthController::class, 'login'])
-        ->middleware('throttle:admin-login')   // 🔐 RATE LIMITER ADDED
+        ->middleware('throttle:admin-login')
         ->name('login.submit');
 
-    // ============================
-    // Protected Admin Area
-    // ============================
+    /*
+    |--------------------------------------------------------------------------
+    | Protected Admin Area
+    |--------------------------------------------------------------------------
+    */
+
     Route::middleware(['admin.auth'])->group(function () {
 
-        Route::get('/', function () {
-            return redirect()->route('admin.dashboard');
-        });
+        Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])
             ->name('dashboard');
 
-        // ============================
-        // Profile Management
-        // ============================
+        /*
+        |--------------------------------------------------------------------------
+        | Profile
+        |--------------------------------------------------------------------------
+        */
+
         Route::controller(ProfileController::class)->group(function () {
             Route::get('/profile', 'profile')->name('profile');
             Route::post('/profile/update', 'profile_info_update')->name('profile.info.update');
             Route::post('/profile/password', 'profile_password_update')->name('profile.password.update');
         });
 
-        // ============================
-        // 🔐 SUPER ADMIN → ADMIN MANAGEMENT
-        // ============================
-        Route::middleware(['role:super_admin'])->group(function () {
+        /*
+        |--------------------------------------------------------------------------
+        | 👑 SUPER ADMIN ONLY
+        |--------------------------------------------------------------------------
+        */
 
-            Route::get('/admins', [AdminManagementController::class, 'index'])
-                ->name('admins.index');
+        Route::middleware('role:super_admin')->group(function () {
 
-            Route::get('/admins/create', [AdminManagementController::class, 'create'])
-                ->name('admins.create');
+            // ✅ Admin Management (Full CRUD)
+            Route::resource('admins', AdminManagementController::class);
 
-            Route::post('/admins', [AdminManagementController::class, 'store'])
-                ->name('admins.store');
+            // ✅ Reset Admin Password
+            Route::post('/admins/{admin}/reset-password',
+                [AdminManagementController::class, 'resetPassword']
+            )->name('admins.reset_password');
+
+            // ✅ Role Permission Management
+            Route::get('/role-permissions', [RolePermissionController::class, 'index'])
+                ->name('role_permissions.index');
+
+            Route::get('/role-permissions/{role}', [RolePermissionController::class, 'edit'])
+                ->name('role_permissions.edit');
+
+            Route::post('/role-permissions/{role}', [RolePermissionController::class, 'update'])
+                ->name('role_permissions.update');
+
+            // ✅ Settings
+            Route::view('/settings', 'backend.admin.settings.index')
+                ->name('settings');
         });
 
-        // ============================
-        // Core Resources
-        // ============================
-        Route::resource('students', StudentController::class);
-        Route::resource('classes', ClassController::class)->except(['show']);
-        Route::resource('auditors', AuditorController::class)->except(['show']);
-        Route::resource('exams', ExamController::class)->except(['show']);
+        /*
+        |--------------------------------------------------------------------------
+        | 👑 SUPER ADMIN + ADMIN
+        |--------------------------------------------------------------------------
+        */
 
-        // ============================
-        // Specialized Resources
-        // ============================
-        Route::resource('results', ResultController::class)
-            ->only(['index', 'create', 'store', 'destroy']);
+        Route::middleware('role:super_admin,admin')->group(function () {
 
-        Route::resource('duplicate-rolls', DuplicateRollController::class)
-            ->only(['index', 'create', 'store', 'destroy']);
+            Route::resource('students', StudentController::class);
+            Route::resource('classes', ClassController::class)->except(['show']);
+            Route::resource('auditors', AuditorController::class)->except(['show']);
+            Route::resource('exams', ExamController::class)->except(['show']);
 
-        // ============================
-        // OMR Errors
-        // ============================
-        Route::get('/omr-errors', [OmrErrorController::class, 'index'])
-            ->name('omr_errors.index');
+            Route::resource('results', ResultController::class)
+                ->only(['index', 'create', 'store', 'destroy']);
 
-        Route::delete('/omr-errors/{omrError}', [OmrErrorController::class, 'destroy'])
-            ->name('omr_errors.destroy');
+            Route::resource('duplicate-rolls', DuplicateRollController::class)
+                ->only(['index', 'create', 'store', 'destroy']);
 
-        // ============================
-        // Correct Answers
-        // ============================
-        Route::resource('correct-answers', CorrectAnswerController::class)
-            ->only(['index', 'create', 'store', 'destroy'])
-            ->names('correct_answers');
+            // OMR Errors
+            Route::get('/omr-errors', [OmrErrorController::class, 'index'])
+                ->name('omr_errors.index');
 
-        // ============================
-        // Attendance Management
-        // ============================
-        Route::resource('attendance', AttendanceController::class);
+            Route::delete('/omr-errors/{omrError}', [OmrErrorController::class, 'destroy'])
+                ->name('omr_errors.destroy');
 
-        // ============================
-        // Attendance Reports
-        // ============================
-        Route::controller(AttendanceReportController::class)->group(function () {
-            Route::get('attendance-report', 'index')->name('attendance.report');
-            Route::get('attendance-report/csv', 'exportCsv')->name('attendance.report.csv');
-            Route::get('attendance-report/pdf', 'exportPdf')->name('attendance.report.pdf');
+            // Correct Answers
+            Route::resource('correct-answers', CorrectAnswerController::class)
+                ->only(['index', 'create', 'store', 'destroy'])
+                ->names('correct_answers');
+
+            // Attendance
+            Route::resource('attendance', AttendanceController::class);
+
+            // Attendance Reports
+            Route::controller(AttendanceReportController::class)->group(function () {
+                Route::get('attendance-report', 'index')->name('attendance.report');
+                Route::get('attendance-report/csv', 'exportCsv')->name('attendance.report.csv');
+                Route::get('attendance-report/pdf', 'exportPdf')->name('attendance.report.pdf');
+            });
+
+            // Exports
+            Route::get('/auditors-export', [AuditorController::class, 'export'])
+                ->name('auditors.export');
+
+            /*
+            |--------------------------------------------------------------------------
+            | 💳 PAYMENTS (✅ ADDED SAFELY)
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('/payments', [PaymentController::class, 'index'])
+                ->name('payments.index');
+
+            Route::post('/payments/{payment}/mark-paid',
+                [PaymentController::class, 'markPaid']
+            )->name('payments.mark_paid');
         });
-
-        // ============================
-        // Exports
-        // ============================
-        Route::get('/auditors-export', [AuditorController::class, 'export'])
-            ->name('auditors.export');
-
-        // ============================
-        // Static Views
-        // ============================
-        Route::view('/sections/add', 'backend.admin.sections.create')->name('sections.add');
-        Route::view('/sections/list', 'backend.admin.sections.index')->name('sections.list');
-        Route::view('/departments/add', 'backend.admin.departments.create')->name('departments.add');
-        Route::view('/departments/list', 'backend.admin.departments.index')->name('departments.list');
-        Route::view('/settings', 'backend.admin.settings.index')->name('settings');
 
     });
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -180,9 +197,8 @@ Route::prefix('student')
     ->middleware(['auth', 'role:student'])
     ->group(function () {
 
-        Route::get('/dashboard', function () {
-            return view('backend.student.Student_dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', fn() => view('backend.student.Student_dashboard'))
+            ->name('dashboard');
 
         Route::get('/results', [ResultController::class, 'studentResults'])
             ->name('results');
@@ -196,8 +212,6 @@ Route::prefix('student')
         Route::post('/profile/update', [ProfileController::class, 'studentProfileUpdate'])
             ->name('profile.update');
 
-        Route::post('/password-update',
-            [StudentController::class, 'updatePassword']
-        )->name('password.update');
-
+        Route::post('/password-update', [StudentController::class, 'updatePassword'])
+            ->name('password.update');
     });

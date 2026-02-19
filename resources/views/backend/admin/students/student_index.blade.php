@@ -5,9 +5,11 @@
 
     {{-- Top Right Button --}}
     <div class="d-flex justify-content-end align-items-center gap-2 mb-3 mt-4">
-        <a href="{{ route('admin.students.create') }}" class="btn btn-success btn-sm px-3">
-            + Add Student
-        </a>
+        @can('create student')
+            <a href="{{ route('admin.students.create') }}" class="btn btn-success btn-sm px-3">
+                + Add Student
+            </a>
+        @endcan
     </div>
 
     {{-- Flash Message --}}
@@ -56,26 +58,30 @@
                                         </a>
 
                                         {{-- Edit --}}
-                                        <a href="{{ route('admin.students.edit', $student->id) }}"
-                                           class="action-btn edit"
-                                           title="Edit">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </a>
+                                        @can('edit student')
+                                            <a href="{{ route('admin.students.edit', $student->id) }}"
+                                               class="action-btn edit"
+                                               title="Edit">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+                                        @endcan
 
                                         {{-- Delete --}}
-                                        <form action="{{ route('admin.students.destroy', $student->id) }}"
-                                              method="POST"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Delete this student?')">
-                                            @csrf
-                                            @method('DELETE')
+                                        @can('delete student')
+                                            <form action="{{ route('admin.students.destroy', $student->id) }}"
+                                                  method="POST"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Delete this student?')">
+                                                @csrf
+                                                @method('DELETE')
 
-                                            <button type="submit"
-                                                    class="action-btn delete"
-                                                    title="Delete">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
+                                                <button type="submit"
+                                                        class="action-btn delete"
+                                                        title="Delete">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
 
                                     </div>
                                 </td>
@@ -96,115 +102,3 @@
     </div>
 </div>
 @endsection
-
-{{-- ================= STYLES ================= --}}
-@push('css')
-<style>
-/* Datatable spacing */
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter{
-    margin-bottom: 10px !important;
-}
-
-.dataTables_wrapper .dataTables_filter input{
-    width: 220px !important;
-    height: 34px !important;
-    padding: 0 10px !important;
-    font-size: 14px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 4px !important;
-}
-
-.dataTables_wrapper .dataTables_length select{
-    height: 34px !important;
-    padding: 0 10px !important;
-    font-size: 14px !important;
-}
-
-/* Table */
-table.restaurant-dt thead th{
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: #5b6ea6 !important;
-    text-transform: uppercase !important;
-}
-
-table.restaurant-dt tbody td{
-    padding: 12px 10px !important;
-    font-size: 14px !important;
-    vertical-align: middle !important;
-}
-
-/* Action buttons */
-.action-group{
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-
-.action-btn{
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.action-btn i{
-    font-size: 13px;
-    color: #fff;
-}
-
-/* Colors */
-.action-btn.view{ background:#2563eb; }
-.action-btn.edit{ background:#16a34a; }
-.action-btn.delete{ background:#ef4444; }
-
-/* Hover */
-.action-btn:hover{
-    transform: translateY(-1px);
-    opacity: 0.9;
-}
-
-table.dataTable.no-footer{
-    border-bottom: 0 !important;
-}
-</style>
-@endpush
-
-{{-- ================= SCRIPTS ================= --}}
-@push('js')
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    if (window.$ && $.fn.DataTable) {
-
-        const table = $('#studentsTable').DataTable({
-            pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            order: [[1, 'asc']],
-            columnDefs: [
-                { orderable: false, targets: [0, 4] }
-            ],
-            language: {
-                search: "",
-                searchPlaceholder: "Search"
-            }
-        });
-
-        // Auto SL numbering
-        table.on('order.dt search.dt draw.dt', function () {
-            let i = 1;
-            table.cells(null, 0, { search: 'applied', order: 'applied' })
-                .every(function () {
-                    this.data(i++);
-                });
-        }).draw();
-    }
-});
-</script>
-@endpush

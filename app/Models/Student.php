@@ -51,6 +51,24 @@ class Student extends Model
         'roll_number'      // PK on students table
     );
 }
+
+public function payments()
+{
+    return $this->hasMany(Payment::class);
+}
+
+public function subscriptions()
+{
+    return $this->hasMany(StudentSubscription::class);
+}
+
+public function activeSubscription()
+{
+    return $this->hasOne(StudentSubscription::class)
+        ->where('status', 'active');
+}
+
+
 public function user()
 {
     return $this->belongsTo(User::class);

@@ -28,92 +28,119 @@
     <div class="card edit-card">
         <div class="card-body">
 
-            <form action="{{ route('admin.students.update', $student->id) }}" method="POST">
-                @csrf
-                @method('PUT')
+            @can('edit student')
+                <form action="{{ route('admin.students.update', $student->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
 
-                <div class="row g-3">
+                    <div class="row g-3">
 
-                    {{-- Roll --}}
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Roll Number <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="roll_number"
-                               class="form-control"
-                               value="{{ old('roll_number', $student->roll_number) }}"
-                               required>
-                        @error('roll_number')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+                        {{-- Roll --}}
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                Roll Number <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="text"
+                                   name="roll_number"
+                                   class="form-control"
+                                   value="{{ old('roll_number', $student->roll_number) }}"
+                                   required>
+
+                            @error('roll_number')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Name --}}
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                Student Name <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="text"
+                                   name="name"
+                                   class="form-control"
+                                   value="{{ old('name', $student->name) }}"
+                                   required>
+
+                            @error('name')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Phone --}}
+                        <div class="col-md-4">
+                            <label class="form-label">Phone</label>
+
+                            <input type="text"
+                                   name="phone"
+                                   class="form-control"
+                                   value="{{ old('phone', $student->phone) }}">
+
+                            @error('phone')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Email --}}
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Email <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="email"
+                                   name="email"
+                                   class="form-control"
+                                   value="{{ old('email', $student->user->email ?? '') }}"
+                                   required>
+
+                            @error('email')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Password --}}
+                        <div class="col-md-3">
+                            <label class="form-label">New Password</label>
+
+                            <input type="password"
+                                   name="password"
+                                   class="form-control">
+
+                            <small class="text-muted">
+                                Leave blank to keep current
+                            </small>
+
+                            @error('password')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+
+                        {{-- Confirm Password --}}
+                        <div class="col-md-3">
+                            <label class="form-label">Confirm Password</label>
+
+                            <input type="password"
+                                   name="password_confirmation"
+                                   class="form-control">
+                        </div>
+
                     </div>
 
-                    {{-- Name --}}
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Student Name <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" name="name"
-                               class="form-control"
-                               value="{{ old('name', $student->name) }}"
-                               required>
-                        @error('name')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success px-4">
+                            Update Student
+                        </button>
                     </div>
 
-                    {{-- Phone --}}
-                    <div class="col-md-4">
-                        <label class="form-label">Phone</label>
-                        <input type="text" name="phone"
-                               class="form-control"
-                               value="{{ old('phone', $student->phone) }}">
-                        @error('phone')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Email --}}
-                    <div class="col-md-6">
-                        <label class="form-label">
-                            Email <span class="text-danger">*</span>
-                        </label>
-                        <input type="email" name="email"
-                               class="form-control"
-                               value="{{ old('email', $student->user->email ?? '') }}"
-                               required>
-                        @error('email')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Password --}}
-                    <div class="col-md-3">
-                        <label class="form-label">New Password</label>
-                        <input type="password" name="password"
-                               class="form-control">
-                        <small class="text-muted">Leave blank to keep current</small>
-                        @error('password')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Confirm Password --}}
-                    <div class="col-md-3">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" name="password_confirmation"
-                               class="form-control">
-                    </div>
-
+                </form>
+            @else
+                {{-- Unauthorized Message --}}
+                <div class="alert alert-danger">
+                    You do not have permission to edit students.
                 </div>
-
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-success px-4">
-                        Update Student
-                    </button>
-                </div>
-
-            </form>
+            @endcan
 
         </div>
     </div>

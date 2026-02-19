@@ -7,7 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold mb-1">Create New Admin</h4>
-            <p class="text-muted mb-0">Add a new administrator with limited system access</p>
+            <p class="text-muted mb-0">
+                Add a new administrator with limited system access
+            </p>
         </div>
 
         <a href="{{ route('admin.admins.index') }}"
@@ -39,14 +41,15 @@
                         <label class="form-label fw-semibold">
                             Admin Name <span class="text-danger">*</span>
                         </label>
+
                         <input type="text"
                                name="name"
-                               class="form-control form-control-lg"
+                               class="form-control form-control-lg @error('name') is-invalid @enderror"
                                placeholder="Enter full name"
-                               value="{{ old('name') }}"
-                               required>
+                               value="{{ old('name') }}">
+
                         @error('name')
-                            <small class="text-danger">{{ $message }}</small>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -55,14 +58,15 @@
                         <label class="form-label fw-semibold">
                             Email Address <span class="text-danger">*</span>
                         </label>
+
                         <input type="email"
                                name="email"
-                               class="form-control form-control-lg"
+                               class="form-control form-control-lg @error('email') is-invalid @enderror"
                                placeholder="admin@example.com"
-                               value="{{ old('email') }}"
-                               required>
+                               value="{{ old('email') }}">
+
                         @error('email')
-                            <small class="text-danger">{{ $message }}</small>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -71,23 +75,28 @@
                         <label class="form-label fw-semibold">
                             Password <span class="text-danger">*</span>
                         </label>
+
                         <input type="password"
                                name="password"
-                               class="form-control form-control-lg"
-                               placeholder="Minimum 6 characters"
-                               required>
+                               class="form-control form-control-lg @error('password') is-invalid @enderror"
+                               placeholder="Minimum 6 characters">
+
+                        <small class="text-muted">Use a strong password</small>
+
                         @error('password')
-                            <small class="text-danger">{{ $message }}</small>
+                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    {{-- Role (read-only info) --}}
+                    {{-- Role --}}
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Role</label>
+
                         <input type="text"
                                class="form-control form-control-lg bg-light"
                                value="Admin"
                                readonly>
+
                         <small class="text-muted">
                             This user will have admin-level access (not super admin)
                         </small>
@@ -97,16 +106,18 @@
 
                 {{-- Actions --}}
                 <div class="d-flex justify-content-end gap-2 mt-5">
+
                     <a href="{{ route('admin.admins.index') }}"
                        class="btn btn-light px-4">
                         Cancel
                     </a>
 
                     <button type="submit"
-                            class="btn btn-success px-4">
+                            class="btn btn-success px-4 shadow-sm">
                         <i class="fa-solid fa-user-plus me-1"></i>
                         Create Admin
                     </button>
+
                 </div>
 
             </form>
