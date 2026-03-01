@@ -20,7 +20,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AttendanceReportController;
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\RolePermissionController;
-use App\Http\Controllers\Admin\PaymentController; // ✅ ADDED
+use App\Http\Controllers\Admin\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,25 +34,31 @@ Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 // Global logout
 Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
-// Root Home route (Smart redirect)
+// Root Redirect Based on Role
 Route::get('/', function () {
 
     if (!auth()->check()) {
         return redirect()->route('admin.login');
     }
 
-    return match (auth()->user()->role) {
-        'super_admin', 'admin' => redirect()->route('admin.dashboard'),
-        'student' => redirect()->route('student.dashboard'),
-        default => abort(403)
-    };
+    if (auth()->user()->hasAnyRole(['Super Admin', 'Admin'])) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if (auth()->user()->hasRole('Student')) {
+        return redirect()->route('student.dashboard');
+    }
+
+    abort(403);
 });
+
 
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('admin')->name('admin.')->group(function () {
 
     /*
@@ -78,7 +84,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
-        // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])
             ->name('dashboard');
 
@@ -96,21 +101,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | 👑 SUPER ADMIN ONLY
+        | SUPER ADMIN ONLY
         |--------------------------------------------------------------------------
         */
 
-        Route::middleware('role:super_admin')->group(function () {
+        Route::middleware('role:Super Admin')->group(function () {
 
-            // ✅ Admin Management (Full CRUD)
             Route::resource('admins', AdminManagementController::class);
 
-            // ✅ Reset Admin Password
-            Route::post('/admins/{admin}/reset-password',
+            Route::post(
+                '/admins/{admin}/reset-password',
                 [AdminManagementController::class, 'resetPassword']
             )->name('admins.reset_password');
 
-            // ✅ Role Permission Management
             Route::get('/role-permissions', [RolePermissionController::class, 'index'])
                 ->name('role_permissions.index');
 
@@ -120,18 +123,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/role-permissions/{role}', [RolePermissionController::class, 'update'])
                 ->name('role_permissions.update');
 
-            // ✅ Settings
             Route::view('/settings', 'backend.admin.settings.index')
                 ->name('settings');
         });
 
         /*
         |--------------------------------------------------------------------------
-        | 👑 SUPER ADMIN + ADMIN
+        | SUPER ADMIN + ADMIN
         |--------------------------------------------------------------------------
         */
 
-        Route::middleware('role:super_admin,admin')->group(function () {
+        Route::middleware('role:Super Admin|Admin')->group(function () {
 
             Route::resource('students', StudentController::class);
             Route::resource('classes', ClassController::class)->except(['show']);
@@ -144,57 +146,60 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('duplicate-rolls', DuplicateRollController::class)
                 ->only(['index', 'create', 'store', 'destroy']);
 
-            // OMR Errors
             Route::get('/omr-errors', [OmrErrorController::class, 'index'])
                 ->name('omr_errors.index');
 
             Route::delete('/omr-errors/{omrError}', [OmrErrorController::class, 'destroy'])
                 ->name('omr_errors.destroy');
 
-            // Correct Answers
             Route::resource('correct-answers', CorrectAnswerController::class)
                 ->only(['index', 'create', 'store', 'destroy'])
                 ->names('correct_answers');
 
-            // Attendance
             Route::resource('attendance', AttendanceController::class);
 
-            // Attendance Reports
             Route::controller(AttendanceReportController::class)->group(function () {
                 Route::get('attendance-report', 'index')->name('attendance.report');
                 Route::get('attendance-report/csv', 'exportCsv')->name('attendance.report.csv');
                 Route::get('attendance-report/pdf', 'exportPdf')->name('attendance.report.pdf');
             });
 
-            // Exports
             Route::get('/auditors-export', [AuditorController::class, 'export'])
                 ->name('auditors.export');
 
             /*
             |--------------------------------------------------------------------------
-            | 💳 PAYMENTS (✅ ADDED SAFELY)
+            | PAYMENTS
             |--------------------------------------------------------------------------
             */
 
             Route::get('/payments', [PaymentController::class, 'index'])
                 ->name('payments.index');
 
-            Route::post('/payments/{payment}/mark-paid',
+            Route::get('/payments/create', [PaymentController::class, 'create'])
+                ->name('payments.create');
+
+            Route::post('/payments', [PaymentController::class, 'store'])
+                ->name('payments.store');
+
+            Route::post(
+                '/payments/{payment}/mark-paid',
                 [PaymentController::class, 'markPaid']
             )->name('payments.mark_paid');
         });
-
     });
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| 🎓 Student Routes
+| Student Routes
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('student')
     ->name('student.')
-    ->middleware(['auth', 'role:student'])
+    ->middleware(['auth', 'role:Student'])
     ->group(function () {
 
         Route::get('/dashboard', fn() => view('backend.student.Student_dashboard'))

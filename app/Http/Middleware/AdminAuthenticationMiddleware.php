@@ -9,20 +9,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminAuthenticationMiddleware
 {
-    public function handle(Request $request, Closure $next): Response
-    {
-        // 1️⃣ User must be logged in
-        if (!Auth::check()) {
-            return redirect()->route('admin.login')
-                ->with('error', 'Please login first.');
-        }
-
-        // 2️⃣ Only allow super_admin or admin
-        if (!in_array(Auth::user()->role, ['super_admin', 'admin'])) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        // 3️⃣ Access granted
-        return $next($request);
+    public function handle(Request $request, Closure $next)
+{
+    if (!Auth::guard('web')->check()) {
+        return redirect()->route('admin.login');
     }
+
+    $user = Auth::guard('web')->user();
+
+    if (!$user->hasAnyRole(['Super Admin', 'Admin'])) {
+        abort(403, 'Unauthorized access.');
+    }
+
+    return $next($request);
+}
 }

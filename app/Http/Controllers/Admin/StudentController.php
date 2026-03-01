@@ -14,43 +14,41 @@ use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
-    // =========================================================
-    // 👨‍💼 ADMIN PANEL LOGIC
-    // =========================================================
-
-  public function index()
-{
-    // 🛡 Permission Check
-    if (!auth()->user()->can('view student')) {
-        abort(403, 'Unauthorized');
+    public function __construct()
+    {
+        // ✅ Permission Middleware (Cleaner than manual checks)
+        $this->middleware('permission:view student')->only('index', 'show');
+        $this->middleware('permission:create student')->only('create', 'store');
+        $this->middleware('permission:edit student')->only('edit', 'update');
+        $this->middleware('permission:delete student')->only('destroy');
     }
 
-    $data['active_menu'] = 'students';
-    $data['page_title']  = 'Student List';
+    // =========================================================
+    // 👨‍💼 ADMIN PANEL
+    // =========================================================
 
-    $students = Student::with('class')->latest()->get();
+    public function index()
+    {
+        $data['active_menu'] = 'students';
+        $data['page_title']  = 'Student List';
 
-    return view('backend.admin.students.student_index', compact('data', 'students'));
-}
+        $students = Student::with('class')->latest()->get();
+
+        return view('backend.admin.students.student_index', compact('data', 'students'));
+    }
 
     public function create()
-{
-    // 🛡 Permission Check
-    if (!auth()->user()->can('create student')) {
-        abort(403, 'Unauthorized');
+    {
+        $data['active_menu'] = 'students';
+        $data['page_title']  = 'Add Student';
+
+        $classes = ClassModel::orderBy('class_name')->get();
+
+        return view('backend.admin.students.student_create', compact('data', 'classes'));
     }
 
-    $data['active_menu'] = 'students';
-    $data['page_title']  = 'Add Student';
-
-    $classes = ClassModel::orderBy('class_name')->get();
-
-    return view('backend.admin.students.student_create', compact('data', 'classes'));
-}
-
-
     /**
-     * ✅ STORE STUDENT (USER + STUDENT)
+     * ✅ STORE STUDENT (Creates User + Student)
      */
     public function store(Request $request)
     {
@@ -70,11 +68,13 @@ class StudentController extends Controller
                 'name'     => $validated['name'],
                 'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role'     => 'student',
                 'phone'    => $validated['phone'] ?? null,
             ]);
 
-            // ✅ Create Student
+            // ✅ Assign Spatie Role
+            $user->assignRole('Student');
+
+            // ✅ Create Student Record
             Student::create([
                 'user_id'          => $user->id,
                 'roll_number'      => trim($validated['roll_number']),
@@ -102,7 +102,7 @@ class StudentController extends Controller
     }
 
     /**
-     * ✅ UPDATE STUDENT + USER SYNC
+     * ✅ UPDATE STUDENT + LINKED USER
      */
     public function update(Request $request, $id)
     {
@@ -129,14 +129,12 @@ class StudentController extends Controller
 
             // ✅ Update Linked User
             if ($student->user) {
-
                 $student->user->update([
                     'name'  => $validated['name'],
                     'email' => $validated['email'],
                     'phone' => $validated['phone'],
                 ]);
 
-                // ✅ Update Password ONLY if provided
                 if (!empty($validated['password'])) {
                     $student->user->update([
                         'password' => Hash::make($validated['password'])
@@ -151,7 +149,7 @@ class StudentController extends Controller
     }
 
     /**
-     * ✅ STUDENT PROFILE (ADMIN VIEW)
+     * ✅ SHOW STUDENT PROFILE (Admin View)
      */
     public function show(Student $student)
     {
@@ -176,19 +174,16 @@ class StudentController extends Controller
 
         $student->load(['results.exam', 'class', 'user']);
 
-        return view(
-            'backend.admin.students.student_profile',
-            compact(
-                'data',
-                'student',
-                'totalDays',
-                'present',
-                'late',
-                'absent',
-                'percentage',
-                'recentAttendance'
-            )
-        );
+        return view('backend.admin.students.student_profile', compact(
+            'data',
+            'student',
+            'totalDays',
+            'present',
+            'late',
+            'absent',
+            'percentage',
+            'recentAttendance'
+        ));
     }
 
     /**
@@ -199,11 +194,9 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
 
         DB::transaction(function () use ($student) {
-
             if ($student->user) {
                 $student->user->delete();
             }
-
             $student->delete();
         });
 
@@ -211,7 +204,7 @@ class StudentController extends Controller
     }
 
     // =========================================================
-    // 🎓 STUDENT PANEL LOGIC
+    // 🎓 STUDENT PANEL
     // =========================================================
 
     public function profile()
@@ -229,17 +222,16 @@ class StudentController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
+        /** @var User $user */
         $user = auth()->user();
 
         DB::transaction(function () use ($request, $user) {
 
-            // ✅ Update User
             $user->update([
                 'name'  => $request->name,
                 'phone' => $request->phone,
             ]);
 
-            // ✅ Sync Student Table
             if ($user->student) {
                 $user->student->update([
                     'name'  => $request->name,
@@ -261,22 +253,20 @@ class StudentController extends Controller
             'new_password'     => 'required|min:6|confirmed',
         ]);
 
+        /** @var User $user */
         $user = auth()->user();
 
-        // ✅ Verify current password
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->with('error', 'Current password is incorrect');
         }
 
-        // ✅ Update password
         $user->update([
             'password' => Hash::make($request->new_password)
         ]);
 
-        // 🔥 IMPORTANT → Force logout after password change
         Auth::logout();
 
         return redirect()->route('login')
-            ->with('success', 'Password updated successfully. Please login again.');
+            ->with('success', 'Password updated. Please login again.');
     }
 }

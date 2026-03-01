@@ -14,48 +14,60 @@ class AdminAuthController extends Controller
     }
 
     /**
-     * Updated login method
+     * ✅ Login Method (Spatie-safe)
      */
-  public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email'      => ['required', 'email'],
-        'password'   => ['required', 'string'],
-        'not_robot'  => ['accepted'],
-    ]);
+    public function login(Request $request)
+    {
+        // ✅ Validate request
+        $credentials = $request->validate([
+            'email'     => ['required', 'email'],
+            'password'  => ['required', 'string'],
+            'not_robot' => ['accepted'],
+        ]);
 
-    unset($credentials['not_robot']);
+        // Remove checkbox field
+        unset($credentials['not_robot']);
 
-    if (Auth::attempt($credentials)) {
+        // ✅ Attempt login
+        if (Auth::attempt($credentials)) {
 
-        $request->session()->regenerate();
+            // ✅ Regenerate session
+            $request->session()->regenerate();
 
-        $user = Auth::user();
+            $user = Auth::user();
 
-        // 🎯 ROLE-BASED REDIRECT
-        return match ($user->role) {
+            // ✅ Spatie Role Redirect
+            if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+                return redirect()
+                    ->route('admin.dashboard')
+                    ->with('success', 'Login successful');
+            }
 
-            'super_admin', 'admin' =>
-                redirect()->route('admin.dashboard')
-                    ->with('success', 'Login successful'),
+            if ($user->hasRole('Student')) {
+                return redirect()
+                    ->route('student.dashboard')
+                    ->with('success', 'Welcome Student');
+            }
 
-            'student' =>
-                redirect()->route('student.dashboard')
-                    ->with('success', 'Welcome Student'),
+            // 🚨 Unknown role → logout
+            Auth::logout();
 
-            default =>
-                abort(403)
-        };
+            abort(403, 'Unauthorized role access.');
+        }
+
+        // ❌ Login failed
+        return back()
+            ->withInput($request->only('email'))
+            ->with('error', 'Invalid email or password');
     }
 
-    return back()
-        ->withInput($request->only('email'))
-        ->with('error', 'Invalid email or password');
-}
-
+    /**
+     * ✅ Logout
+     */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

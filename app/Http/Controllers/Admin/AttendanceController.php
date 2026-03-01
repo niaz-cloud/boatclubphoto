@@ -37,7 +37,11 @@ class AttendanceController extends Controller
         $rows = $query->get();
 
         return view('backend.admin.attendance.attendance_index', compact(
-            'data', 'classes', 'rows', 'date', 'classId'
+            'data',
+            'classes',
+            'rows',
+            'date',
+            'classId'
         ));
     }
 
@@ -70,7 +74,12 @@ class AttendanceController extends Controller
         }
 
         return view('backend.admin.attendance.attendance_create', compact(
-            'data', 'classes', 'students', 'existing', 'classId', 'date'
+            'data',
+            'classes',
+            'students',
+            'existing',
+            'classId',
+            'date'
         ));
     }
 
@@ -122,28 +131,28 @@ class AttendanceController extends Controller
     /**
      * 🎓 Student Attendance View
      */
-  public function studentAttendance()
-{
-    if (auth()->user()->role !== 'student') {
-        abort(403);
+    public function studentAttendance()
+    {
+        if (!auth()->user()->hasRole('Student')) {
+            abort(403);
+        }
+
+        $user = auth()->user();
+
+        // ✅ Find student linked to this user
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            abort(404, 'Student record not found');
+        }
+
+        // ✅ Use STUDENT ID (not USER ID)
+        $attendance = Attendance::where('student_id', $student->id)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return view('backend.student.attendance', compact('attendance'));
     }
-
-    $user = auth()->user();
-
-    // ✅ Find student linked to this user
-    $student = Student::where('user_id', $user->id)->first();
-
-    if (!$student) {
-        abort(404, 'Student record not found');
-    }
-
-    // ✅ Use STUDENT ID (not USER ID)
-    $attendance = Attendance::where('student_id', $student->id)
-        ->orderBy('date', 'desc')
-        ->get();
-
-    return view('backend.student.attendance', compact('attendance'));
-}
 
     /**
      * ✅ Edit Single Attendance Row

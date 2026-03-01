@@ -4,17 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Student;
-use App\Models\Package;
 
 class Payment extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'package_id',
+        'amount',
+        'status',
+        'payment_date',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
 
     /**
-     * ✅ Payment → Student
+     * Payment → Student
      */
     public function student()
     {
@@ -22,7 +32,7 @@ class Payment extends Model
     }
 
     /**
-     * ✅ Payment → Package
+     * Payment → Package
      */
     public function package()
     {

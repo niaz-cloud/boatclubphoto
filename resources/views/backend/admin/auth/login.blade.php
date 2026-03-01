@@ -82,8 +82,8 @@
                                     @endif
 
                                     {{-- ✅ IMPORTANT: submit to your ADMIN login route --}}
-                                    <form class="forms-sample" action="{{ route('admin.login.submit') }}" method="POST">
-                                        @csrf
+                                   <form method="POST" action="{{ route('admin.login.submit') }}">
+                                      @csrf
 
                                         <div class="mb-3">
                                             <label for="userEmail" class="form-label">Email address</label>
