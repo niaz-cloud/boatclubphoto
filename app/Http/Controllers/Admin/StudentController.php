@@ -16,7 +16,6 @@ class StudentController extends Controller
 {
     public function __construct()
     {
-        // ✅ Permission Middleware (Cleaner than manual checks)
         $this->middleware('permission:view student')->only('index', 'show');
         $this->middleware('permission:create student')->only('create', 'store');
         $this->middleware('permission:edit student')->only('edit', 'update');
@@ -24,7 +23,7 @@ class StudentController extends Controller
     }
 
     // =========================================================
-    // 👨‍💼 ADMIN PANEL
+    // ADMIN PANEL
     // =========================================================
 
     public function index()
@@ -32,7 +31,7 @@ class StudentController extends Controller
         $data['active_menu'] = 'students';
         $data['page_title']  = 'Student List';
 
-        $students = Student::with('class')->latest()->get();
+        $students = Student::with(['class', 'teacher'])->latest()->get();
 
         return view('backend.admin.students.student_index', compact('data', 'students'));
     }
@@ -42,13 +41,18 @@ class StudentController extends Controller
         $data['active_menu'] = 'students';
         $data['page_title']  = 'Add Student';
 
-        $classes = ClassModel::orderBy('class_name')->get();
+        $classes  = ClassModel::orderBy('class_name')->get();
+        $teachers = User::role('Teacher')->orderBy('name')->get();
 
-        return view('backend.admin.students.student_create', compact('data', 'classes'));
+        return view('backend.admin.students.student_create', compact(
+            'data',
+            'classes',
+            'teachers'
+        ));
     }
 
     /**
-     * ✅ STORE STUDENT (Creates User + Student)
+     * STORE STUDENT
      */
     public function store(Request $request)
     {
@@ -59,11 +63,11 @@ class StudentController extends Controller
             'password'    => 'required|string|min:6',
             'phone'       => 'nullable|string|max:20',
             'class_id'    => 'required|exists:classes,id',
+            'teacher_id'  => 'nullable|exists:users,id',
         ]);
 
         DB::transaction(function () use ($validated) {
 
-            // ✅ Create User
             $user = User::create([
                 'name'     => $validated['name'],
                 'email'    => $validated['email'],
@@ -71,16 +75,15 @@ class StudentController extends Controller
                 'phone'    => $validated['phone'] ?? null,
             ]);
 
-            // ✅ Assign Spatie Role
             $user->assignRole('Student');
 
-            // ✅ Create Student Record
             Student::create([
                 'user_id'          => $user->id,
                 'roll_number'      => trim($validated['roll_number']),
                 'name'             => $validated['name'],
                 'phone'            => $validated['phone'] ?? null,
                 'class_id'         => $validated['class_id'],
+                'teacher_id'       => $validated['teacher_id'] ?? null,
                 'attendance_count' => 0,
             ]);
         });
@@ -95,14 +98,20 @@ class StudentController extends Controller
         $data['active_menu'] = 'students';
         $data['page_title']  = 'Edit Student';
 
-        $student = Student::findOrFail($id);
-        $classes = ClassModel::orderBy('class_name')->get();
+        $student  = Student::findOrFail($id);
+        $classes  = ClassModel::orderBy('class_name')->get();
+        $teachers = User::role('Teacher')->orderBy('name')->get();
 
-        return view('backend.admin.students.student_edit', compact('data', 'student', 'classes'));
+        return view('backend.admin.students.student_edit', compact(
+            'data',
+            'student',
+            'classes',
+            'teachers'
+        ));
     }
 
     /**
-     * ✅ UPDATE STUDENT + LINKED USER
+     * UPDATE STUDENT
      */
     public function update(Request $request, $id)
     {
@@ -115,20 +124,21 @@ class StudentController extends Controller
             'email'       => 'required|email|unique:users,email,' . $student->user_id,
             'password'    => 'nullable|min:6|confirmed',
             'class_id'    => 'required|exists:classes,id',
+            'teacher_id'  => 'nullable|exists:users,id',
         ]);
 
         DB::transaction(function () use ($student, $validated) {
 
-            // ✅ Update Student
             $student->update([
                 'roll_number' => trim($validated['roll_number']),
                 'name'        => $validated['name'],
                 'phone'       => $validated['phone'],
                 'class_id'    => $validated['class_id'],
+                'teacher_id'  => $validated['teacher_id'] ?? null,
             ]);
 
-            // ✅ Update Linked User
             if ($student->user) {
+
                 $student->user->update([
                     'name'  => $validated['name'],
                     'email' => $validated['email'],
@@ -149,7 +159,7 @@ class StudentController extends Controller
     }
 
     /**
-     * ✅ SHOW STUDENT PROFILE (Admin View)
+     * STUDENT PROFILE
      */
     public function show(Student $student)
     {
@@ -172,7 +182,7 @@ class StudentController extends Controller
             ->limit(10)
             ->get();
 
-        $student->load(['results.exam', 'class', 'user']);
+        $student->load(['results.exam', 'class', 'teacher', 'user']);
 
         return view('backend.admin.students.student_profile', compact(
             'data',
@@ -187,16 +197,18 @@ class StudentController extends Controller
     }
 
     /**
-     * ✅ DELETE STUDENT + USER
+     * DELETE STUDENT
      */
     public function destroy($id)
     {
         $student = Student::findOrFail($id);
 
         DB::transaction(function () use ($student) {
+
             if ($student->user) {
                 $student->user->delete();
             }
+
             $student->delete();
         });
 
@@ -204,7 +216,7 @@ class StudentController extends Controller
     }
 
     // =========================================================
-    // 🎓 STUDENT PANEL
+    // STUDENT PANEL
     // =========================================================
 
     public function profile()
@@ -212,9 +224,6 @@ class StudentController extends Controller
         return view('backend.student.profile');
     }
 
-    /**
-     * ✅ UPDATE PROFILE (Student Panel)
-     */
     public function updateProfile(Request $request)
     {
         $request->validate([
@@ -222,7 +231,6 @@ class StudentController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        /** @var User $user */
         $user = auth()->user();
 
         DB::transaction(function () use ($request, $user) {
@@ -233,6 +241,7 @@ class StudentController extends Controller
             ]);
 
             if ($user->student) {
+
                 $user->student->update([
                     'name'  => $request->name,
                     'phone' => $request->phone,
@@ -243,9 +252,6 @@ class StudentController extends Controller
         return back()->with('success', 'Profile updated successfully');
     }
 
-    /**
-     * ✅ UPDATE PASSWORD (Student Panel)
-     */
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -253,7 +259,6 @@ class StudentController extends Controller
             'new_password'     => 'required|min:6|confirmed',
         ]);
 
-        /** @var User $user */
         $user = auth()->user();
 
         if (!Hash::check($request->current_password, $user->password)) {

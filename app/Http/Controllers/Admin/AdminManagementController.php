@@ -15,17 +15,11 @@ class AdminManagementController extends Controller
      */
     public function index()
     {
-        $data['active_menu'] = 'admins';
-        $data['page_title']  = 'Admin List';
-
-        $admins = User::where('role', 'admin')
+        $admins = \App\Models\User::role(['Admin', 'Super Admin'])
             ->latest()
             ->get();
 
-        return view(
-            'backend.admin.admins.admin_index',
-            compact('data', 'admins')
-        );
+        return view('backend.admin.admins.index', compact('admins'));
     }
 
     /**

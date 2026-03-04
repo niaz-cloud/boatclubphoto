@@ -14,6 +14,7 @@ class AdminAuthController extends Controller
     }
 
     /**
+ /**
      * ✅ Login Method (Spatie-safe)
      */
     public function login(Request $request)
@@ -31,27 +32,38 @@ class AdminAuthController extends Controller
         // ✅ Attempt login
         if (Auth::attempt($credentials)) {
 
-            // ✅ Regenerate session
+            // Regenerate session
             $request->session()->regenerate();
 
             $user = Auth::user();
 
-            // ✅ Spatie Role Redirect
+            // =============================
+            // ROLE BASED REDIRECT
+            // =============================
+
+            // Admin
             if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
                 return redirect()
                     ->route('admin.dashboard')
                     ->with('success', 'Login successful');
             }
 
+            // Teacher
+            if ($user->hasRole('Teacher')) {
+                return redirect()
+                    ->route('teacher.dashboard')
+                    ->with('success', 'Welcome Teacher');
+            }
+
+            // Student
             if ($user->hasRole('Student')) {
                 return redirect()
                     ->route('student.dashboard')
                     ->with('success', 'Welcome Student');
             }
 
-            // 🚨 Unknown role → logout
+            // 🚨 Unknown role
             Auth::logout();
-
             abort(403, 'Unauthorized role access.');
         }
 
@@ -60,7 +72,6 @@ class AdminAuthController extends Controller
             ->withInput($request->only('email'))
             ->with('error', 'Invalid email or password');
     }
-
     /**
      * ✅ Logout
      */

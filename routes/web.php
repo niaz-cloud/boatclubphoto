@@ -2,6 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Controllers
+|--------------------------------------------------------------------------
+*/
+
 // Backend admin controllers
 use App\Http\Controllers\backend\admin\DashboardController;
 use App\Http\Controllers\backend\admin\AdminAuthController;
@@ -22,19 +28,23 @@ use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\PaymentController;
 
+// Teacher controllers
+use App\Http\Controllers\Teacher\TeacherDashboardController;
+use App\Http\Controllers\Teacher\TeacherStudentController;
+use App\Http\Controllers\Teacher\TeacherAttendanceController;
+use App\Http\Controllers\Teacher\TeacherResultController;
+
+
 /*
 |--------------------------------------------------------------------------
-| Public & Global Routes
+| Public Routes
 |--------------------------------------------------------------------------
 */
 
-// Global login alias
 Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 
-// Global logout
 Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
-// Root Redirect Based on Role
 Route::get('/', function () {
 
     if (!auth()->check()) {
@@ -43,6 +53,10 @@ Route::get('/', function () {
 
     if (auth()->user()->hasAnyRole(['Super Admin', 'Admin'])) {
         return redirect()->route('admin.dashboard');
+    }
+
+    if (auth()->user()->hasRole('Teacher')) {
+        return redirect()->route('teacher.dashboard');
     }
 
     if (auth()->user()->hasRole('Student')) {
@@ -67,8 +81,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/login', [AdminAuthController::class, 'showLogin'])
-        ->name('login');
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
 
     Route::post('/login', [AdminAuthController::class, 'login'])
         ->middleware('throttle:admin-login')
@@ -84,8 +97,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
-        Route::get('/dashboard', [DashboardController::class, 'dashboard'])
-            ->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
         /*
         |--------------------------------------------------------------------------
@@ -109,10 +121,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::resource('admins', AdminManagementController::class);
 
-            Route::post(
-                '/admins/{admin}/reset-password',
-                [AdminManagementController::class, 'resetPassword']
-            )->name('admins.reset_password');
+            Route::post('/admins/{admin}/reset-password', [AdminManagementController::class, 'resetPassword'])
+                ->name('admins.reset_password');
 
             Route::get('/role-permissions', [RolePermissionController::class, 'index'])
                 ->name('role_permissions.index');
@@ -122,14 +132,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::post('/role-permissions/{role}', [RolePermissionController::class, 'update'])
                 ->name('role_permissions.update');
-
-            Route::view('/settings', 'backend.admin.settings.index')
-                ->name('settings');
         });
 
         /*
         |--------------------------------------------------------------------------
-        | SUPER ADMIN + ADMIN
+        | ADMIN + SUPER ADMIN
         |--------------------------------------------------------------------------
         */
 
@@ -146,16 +153,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('duplicate-rolls', DuplicateRollController::class)
                 ->only(['index', 'create', 'store', 'destroy']);
 
-            Route::get('/omr-errors', [OmrErrorController::class, 'index'])
-                ->name('omr_errors.index');
-
-            Route::delete('/omr-errors/{omrError}', [OmrErrorController::class, 'destroy'])
-                ->name('omr_errors.destroy');
-
-            Route::resource('correct-answers', CorrectAnswerController::class)
-                ->only(['index', 'create', 'store', 'destroy'])
-                ->names('correct_answers');
-
             Route::resource('attendance', AttendanceController::class);
 
             Route::controller(AttendanceReportController::class)->group(function () {
@@ -164,28 +161,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('attendance-report/pdf', 'exportPdf')->name('attendance.report.pdf');
             });
 
-            Route::get('/auditors-export', [AuditorController::class, 'export'])
-                ->name('auditors.export');
+            Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 
-            /*
-            |--------------------------------------------------------------------------
-            | PAYMENTS
-            |--------------------------------------------------------------------------
-            */
+            Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
 
-            Route::get('/payments', [PaymentController::class, 'index'])
-                ->name('payments.index');
+            Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
 
-            Route::get('/payments/create', [PaymentController::class, 'create'])
-                ->name('payments.create');
+            Route::post('/payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])
+                ->name('payments.mark_paid');
 
-            Route::post('/payments', [PaymentController::class, 'store'])
-                ->name('payments.store');
-
-            Route::post(
-                '/payments/{payment}/mark-paid',
-                [PaymentController::class, 'markPaid']
-            )->name('payments.mark_paid');
+            // Settings
+            Route::get('/settings', function () {
+                return view('backend.admin.settings.index');
+            })->name('settings');
+            Route::post('/settings', function () {
+                return back()->with('success', 'Settings saved successfully');
+            })->name('settings.save');
+            Route::resource('teachers', \App\Http\Controllers\Admin\TeacherController::class);
         });
     });
 });
@@ -210,13 +202,38 @@ Route::prefix('student')
 
         Route::get('/attendance', [AttendanceController::class, 'studentAttendance'])
             ->name('attendance');
+    });
 
-        Route::get('/profile', [ProfileController::class, 'studentProfile'])
-            ->name('profile');
 
-        Route::post('/profile/update', [ProfileController::class, 'studentProfileUpdate'])
-            ->name('profile.update');
+/*
+|--------------------------------------------------------------------------
+| Teacher Routes
+|--------------------------------------------------------------------------
+*/
 
-        Route::post('/password-update', [StudentController::class, 'updatePassword'])
-            ->name('password.update');
+Route::prefix('teacher')
+    ->name('teacher.')
+    ->middleware(['auth', 'role:Teacher'])
+    ->group(function () {
+
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/students', [TeacherStudentController::class, 'index'])
+            ->name('students.index');
+
+        Route::get('/students/{student}', [TeacherStudentController::class, 'show'])
+            ->name('students.show');
+
+        Route::get('/attendance/create/{student}', [TeacherAttendanceController::class, 'create'])
+            ->name('attendance.create');
+
+        Route::post('/attendance/store', [TeacherAttendanceController::class, 'store'])
+            ->name('attendance.store');
+
+        Route::get('/results/create/{student}', [TeacherResultController::class, 'create'])
+            ->name('results.create');
+
+        Route::post('/results/store', [TeacherResultController::class, 'store'])
+            ->name('results.store');
     });
