@@ -88,11 +88,13 @@ class AttendanceController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'class_id' => 'required|exists:classes,id',
-            'date'     => 'required|date',
-            'status'   => 'array',
-            'status.*' => 'in:present,absent,late',
+        $student = Student::find($studentId);
+
+        Attendance::create([
+            'student_id' => $student->id,
+            'class_id' => $student->class_id,
+            'date' => $request->date,
+            'status' => $status
         ]);
 
         $classId = (int) $validated['class_id'];

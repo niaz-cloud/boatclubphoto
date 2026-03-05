@@ -38,6 +38,7 @@ class TeacherAttendanceController extends Controller
 
         Attendance::create([
             'student_id' => $student->id,
+            'class_id'   => $student->class_id,
             'date'       => $request->date,
             'status'     => $request->status,
         ]);
