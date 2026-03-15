@@ -9,6 +9,7 @@ use App\Models\DuplicateRoll;
 use App\Models\OmrError;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Notifications\ResultPublishedNotification;
 
 class ResultController extends Controller
 {
@@ -56,10 +57,11 @@ class ResultController extends Controller
         $examId = $validated['exam_id'];
         $roll   = $validated['roll_number'];
 
-        // 🚫 Duplicate roll check
+        // Duplicate roll check
         if (DuplicateRoll::where('exam_id', $examId)
             ->where('roll_number', $roll)
-            ->exists()) {
+            ->exists()
+        ) {
 
             OmrError::create([
                 'exam_id'     => $examId,
@@ -72,15 +74,16 @@ class ResultController extends Controller
             return back()->withInput()->with('error', 'Duplicate roll number for this exam.');
         }
 
-        // 🚫 Prevent double result
+        // Prevent duplicate result
         if (Result::where('exam_id', $examId)
             ->where('roll_number', $roll)
-            ->exists()) {
+            ->exists()
+        ) {
 
             return back()->withInput()->with('error', 'Result already exists for this roll.');
         }
 
-        // ✅ Find student via roll number
+        // Find student
         $student = Student::where('roll_number', $roll)->first();
 
         if (!$student) {
@@ -89,8 +92,9 @@ class ResultController extends Controller
 
         $exam = Exam::findOrFail($examId);
 
+        // Calculate marks
         $obtained = ($validated['correct_answer'] * $exam->per_question_mark)
-                  - ($validated['wrong_answer'] * $exam->negative_mark);
+            - ($validated['wrong_answer'] * $exam->negative_mark);
 
         if ($obtained < 0) {
             $obtained = 0;
@@ -98,10 +102,10 @@ class ResultController extends Controller
 
         $status = $obtained >= $exam->pass_mark ? 'pass' : 'fail';
 
-        // ✅ Save Result with student_id
-        Result::create([
+        // Save result
+        $result = Result::create([
             'exam_id'         => $examId,
-            'student_id'      => $student->id,  // ✅ CRITICAL FIX
+            'student_id'      => $student->id,
             'roll_number'     => $roll,
             'correct_answer'  => $validated['correct_answer'],
             'wrong_answer'    => $validated['wrong_answer'],
@@ -111,9 +115,14 @@ class ResultController extends Controller
             'status'          => $status,
         ]);
 
+        // Send notification to student user
+        if ($student->user) {
+            $student->user->notify(new ResultPublishedNotification($student));
+        }
+
         return redirect()
             ->route('admin.results.index')
-            ->with('success', 'Result generated successfully!');
+            ->with('success', 'Result generated successfully and notification sent!');
     }
 
     public function destroy(Result $result)
@@ -122,20 +131,20 @@ class ResultController extends Controller
         return back()->with('success', 'Result deleted.');
     }
 
-    // 🎓 Student Results
-   public function studentResults()
-{
-    $student = auth()->user()->student;
+    // Student Results
+    public function studentResults()
+    {
+        $student = auth()->user()->student;
 
-    if (!$student) {
-        abort(404, 'Student record not found');
+        if (!$student) {
+            abort(404, 'Student record not found');
+        }
+
+        $results = Result::where('student_id', $student->id)
+            ->with('exam')
+            ->latest()
+            ->get();
+
+        return view('backend.student.results', compact('results'));
     }
-
-    $results = Result::where('student_id', $student->id) // ✅ FIXED
-        ->with('exam')
-        ->latest()
-        ->get();
-
-    return view('backend.student.results', compact('results'));
-}
 }

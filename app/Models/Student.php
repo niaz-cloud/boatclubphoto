@@ -18,12 +18,12 @@ class Student extends Model
         'name',
         'phone',
         'class_id',
-        'teacher_id',          // ✅ ADDED
+        'teacher_id',
         'attendance_count'
     ];
 
     /**
-     * A student belongs to one class
+     * Student belongs to a class
      */
     public function class()
     {
@@ -31,17 +31,13 @@ class Student extends Model
     }
 
     /**
-     * ✅ Student belongs to a teacher (User model)
-     * students.teacher_id → users.id
+     * Student belongs to a teacher
      */
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
-    public function students()
-    {
-        return $this->hasMany(\App\Models\Student::class, 'teacher_id');
-    }
+
     /**
      * Student has many attendance records
      */
@@ -84,7 +80,7 @@ class Student extends Model
     }
 
     /**
-     * Student belongs to a user (for login)
+     * Student belongs to a user account
      */
     public function user()
     {
